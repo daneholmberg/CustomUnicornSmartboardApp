@@ -9,10 +9,17 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~4.0.1",
+    "debug": "^4.3.2",
     "expo": "~52.0.30",
     "expo-status-bar": "~2.0.1",
+    "kcapp-sio-client": "github:kcapp/kcapp-sio-client#4f298b816e01e689d219abd55a6d4548bc2352f4",
     "react": "18.3.1",
-    "react-native": "0.76.6"
+    "react-dom": "18.3.1",
+    "react-native": "0.76.6",
+    "react-native-ble-plx": "3.0.0",
+    "react-native-svg": "^15.11.1",
+    "react-native-web": "~0.19.13"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

@@ -1,20 +1,28 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { View, StatusBar } from 'react-native';
+import GameSetupScreen from './screens/GameSetupScreen';
+import X01GameScreen from './screens/X01GameScreen';
+import AroundTheWorldGameScreen from './screens/AroundTheWorldGameScreen';
 
 export default function App() {
+  const [gameConfig, setGameConfig] = useState(null);
+
+  const startGame = (config) => {
+    setGameConfig(config);
+  };
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+    <View style={{ flex: 1 }}>
+      {gameConfig ? (
+        gameConfig.mode === 'x01' ? (
+          <X01GameScreen gameConfig={gameConfig} />
+        ) : (
+          <AroundTheWorldGameScreen gameConfig={gameConfig} />
+        )
+      ) : (
+        <GameSetupScreen onStartGame={startGame} />
+      )}
       <StatusBar style="auto" />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
