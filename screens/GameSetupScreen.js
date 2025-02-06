@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
-import { GAME_MODES, GAME_CONFIGS } from '../constants';
+import { GAME_MODES } from '../constants/gameModes';
+import { GAME_CONFIGS } from '../constants/gameConfigs';
 
 export default function GameSetupScreen({ onStartGame }) {
   const [selectedGameMode, setSelectedGameMode] = useState(null);

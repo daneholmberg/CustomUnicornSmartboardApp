@@ -5,6 +5,7 @@ import GameScreen from '../components/GameScreen';
 import { PlayerCard } from '../components/PlayerCard';
 import { AroundTheWorldStats } from '../components/AroundTheWorldStats';
 import { theme } from '../theme';
+import { AROUND_THE_WORLD_TARGETS } from '../constants/gameConstants';
 
 export default function AroundTheWorldGameScreen({ gameConfig }) {
   const gameState = useGameState(gameConfig);
@@ -17,7 +18,7 @@ export default function AroundTheWorldGameScreen({ gameConfig }) {
             key={index}
             player={player}
             isActive={index === gameState.currentPlayerIndex}
-            mainScore={player.currentTarget}
+            mainScore={AROUND_THE_WORLD_TARGETS[player.targetIndex]}
             mainScoreLabel="AIMING FOR"
             renderStats={(player) => <AroundTheWorldStats stats={player.stats} />}
           />
