@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { View, StatusBar } from 'react-native';
+import { SmartboardProvider } from './context/SmartboardContext';
+import { DartboardProvider } from './context/DartboardContext';
 import GameSetupScreen from './screens/GameSetupScreen';
+import { GAME_MODES } from './constants';
 import X01GameScreen from './screens/X01GameScreen';
 import AroundTheWorldGameScreen from './screens/AroundTheWorldGameScreen';
-import { GAME_MODES } from './gameEngine/GameFactory';
 
 const gameScreens = {
   [GAME_MODES.X01]: X01GameScreen,
@@ -20,13 +22,17 @@ export default function App() {
   const CurrentGameScreen = gameConfig ? gameScreens[gameConfig.mode] : null;
 
   return (
-    <View style={{ flex: 1 }}>
-      {CurrentGameScreen ? (
-        <CurrentGameScreen gameConfig={gameConfig} />
-      ) : (
-        <GameSetupScreen onStartGame={startGame} />
-      )}
-      <StatusBar style="auto" />
-    </View>
+    <SmartboardProvider>
+      <DartboardProvider>
+        <View style={{ flex: 1 }}>
+          {CurrentGameScreen ? (
+            <CurrentGameScreen gameConfig={gameConfig} />
+          ) : (
+            <GameSetupScreen onStartGame={startGame} />
+          )}
+          <StatusBar style="auto" />
+        </View>
+      </DartboardProvider>
+    </SmartboardProvider>
   );
 }

@@ -13,21 +13,17 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
   }
 
   findNextActivePlayer(startIndex) {
-    let nextIndex = (startIndex + 1) % this.players.length;
-    while (this.players[nextIndex].completed && nextIndex !== startIndex) {
-      nextIndex = (nextIndex + 1) % this.players.length;
+    const players = this.turnManager.getState().players;
+    let nextIndex = (startIndex + 1) % players.length;
+    while (players[nextIndex].completed && nextIndex !== startIndex) {
+      nextIndex = (nextIndex + 1) % players.length;
     }
     return nextIndex;
   }
 
-  nextPlayer() {
-    this.currentPlayerIndex = this.findNextActivePlayer(this.currentPlayerIndex);
-    this.throwsThisTurn = 0;
-  }
-
   handleThrow(dart) {
     this.lastHit = dart;
-    const currentPlayer = this.players[this.currentPlayerIndex];
+    const currentPlayer = this.turnManager.getCurrentPlayer();
     
     if (dart.score === currentPlayer.currentTarget) {
       if (currentPlayer.currentIndex + dart.multiplier < this.targets.length) {
@@ -37,16 +33,13 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
       } else {
         currentPlayer.completed = true;
         this.gameMessage = `${currentPlayer.name} wins!`;
-        this.nextPlayer();
+        this.turnManager.currentPlayerIndex = this.findNextActivePlayer(this.turnManager.currentPlayerIndex);
         return;
       }
     } else {
       this.gameMessage = `${currentPlayer.name} missed ${currentPlayer.currentTarget}`;
     }
 
-    this.throwsThisTurn++;
-    if (this.isEndOfTurn()) {
-      this.nextPlayer();
-    }
+    this.turnManager.incrementThrows();
   }
 }

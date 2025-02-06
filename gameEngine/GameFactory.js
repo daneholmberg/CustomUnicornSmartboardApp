@@ -1,10 +1,6 @@
 import { X01GameEngine } from './X01GameEngine';
 import { AroundTheWorldGameEngine } from './AroundTheWorldGameEngine';
-
-export const GAME_MODES = {
-  X01: 'x01',
-  AROUND_THE_WORLD: 'aroundTheWorld',
-};
+import { GAME_MODES } from '../constants';
 
 export function createGameEngine(config) {
   switch (config.mode) {
