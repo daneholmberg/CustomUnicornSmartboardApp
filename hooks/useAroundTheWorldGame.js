@@ -14,6 +14,7 @@ export default function useAroundTheWorldGame(initialPlayers) {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [throwsThisTurn, setThrowsThisTurn] = useState(0);
   const [gameMessage, setGameMessage] = useState("");
+  const [lastHit, setLastHit] = useState(null);
 
   const findNextActivePlayer = (startIndex) => {
     let nextIndex = (startIndex + 1) % gamePlayers.length;
@@ -44,11 +45,15 @@ export default function useAroundTheWorldGame(initialPlayers) {
   };
 
   const handleThrow = (dart) => {
+    setLastHit(dart); // Set the last hit
     const currentPlayer = gamePlayers[currentPlayerIndex];
     let message = `${currentPlayer.name} threw a dart. `;
     
     if (dart.score === currentPlayer.currentTarget) {
-      message += `Hit ${currentPlayer.currentTarget} with a ${dart.multiplier}! `;
+      message += `Hit ${currentPlayer.currentTarget}`;
+      if (dart.multiplier > 1) {
+        message += ` with a multiplier of ${dart.multiplier}!`;
+      }
       
       if (currentPlayer.currentIndex + dart.multiplier < aroundTheWorldTargets.length) {
         const newIndex = currentPlayer.currentIndex + dart.multiplier;
@@ -98,5 +103,6 @@ export default function useAroundTheWorldGame(initialPlayers) {
     throwsThisTurn,
     handleThrow,
     mockThrow,
+    lastHit,
   };
 } 

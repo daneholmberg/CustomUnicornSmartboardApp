@@ -9,8 +9,10 @@ export default function useX01Game(initialPlayers) {
   const [throwsThisTurn, setThrowsThisTurn] = useState(0);
   const [currentTurnScore, setCurrentTurnScore] = useState(0);
   const [gameMessage, setGameMessage] = useState("");
+  const [lastHit, setLastHit] = useState(null);
 
   const handleThrow = (dart) => {
+    setLastHit(dart); // Set the last hit
     const currentPlayer = gamePlayers[currentPlayerIndex];
     const throwValue = dart.score * dart.multiplier;
     let message = `${currentPlayer.name} scored ${throwValue}. `;
@@ -75,5 +77,6 @@ export default function useX01Game(initialPlayers) {
     error,
     throwsThisTurn,
     handleThrow, // Expose this for the dartboard component
+    lastHit, // Add lastHit to return values
   };
 } 
