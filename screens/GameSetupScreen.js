@@ -1,97 +1,113 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
+import { GAME_MODES, GAME_CONFIGS } from '../constants';
 
 export default function GameSetupScreen({ onStartGame }) {
-  // New state for game mode and (for X01) score selection
   const [selectedGameMode, setSelectedGameMode] = useState(null);
-  const [selectedScore, setSelectedScore] = useState(null);
+  const [configValues, setConfigValues] = useState({});
   const [players, setPlayers] = useState([]);
   const [playerNameInput, setPlayerNameInput] = useState("");
 
+  const selectedConfig = selectedGameMode ? GAME_CONFIGS[selectedGameMode] : null;
+
+  const handleAddPlayer = () => {
+    if (playerNameInput.trim() && selectedGameMode) {
+      const playerState = GAME_CONFIGS[selectedGameMode].initialPlayerState({
+        selectedScore: configValues.selectedScore
+      });
+      setPlayers(prev => [
+        ...prev,
+        {
+          name: playerNameInput.trim(),
+          ...playerState,
+        }
+      ]);
+      setPlayerNameInput("");
+    }
+  };
+
+  const renderSetupFields = () => {
+    if (!selectedConfig) return null;
+
+    return selectedConfig.setupFields.map((field) => {
+      switch (field.type) {
+        case 'select':
+          return (
+            <View key={field.name} style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>{field.label}</Text>
+              <View style={styles.optionsRow}>
+                {field.options.map((option) => (
+                  <View key={option.value} style={styles.optionButton}>
+                    <Button
+                      key={option.value}
+                      title={option.label}
+                      onPress={() => setConfigValues(prev => ({
+                        ...prev,
+                        [field.name]: option.value
+                      }))}
+                      color={configValues[field.name] === option.value ? '#2196F3' : '#666'}
+                    />
+                  </View>
+                ))}
+              </View>
+            </View>
+          );
+        default:
+          return null;
+      }
+    });
+  };
+
   return (
     <View style={styles.container}>
-      {/* Step 1: Choose Game Mode */}
-      {!selectedGameMode && (
+      {!selectedGameMode ? (
         <>
           <Text style={styles.headerText}>Select Game Mode</Text>
           <View style={styles.buttonRow}>
-            <Button title="X01" onPress={() => setSelectedGameMode('x01')} />
-            <Button title="Around the World" onPress={() => setSelectedGameMode('aroundTheWorld')} />
+            {Object.entries(GAME_CONFIGS).map(([mode, config]) => (
+              <Button
+                key={mode}
+                title={config.name}
+                onPress={() => setSelectedGameMode(mode)}
+              />
+            ))}
           </View>
         </>
-      )}
-
-      {/* Step 2a: For X01, choose starting score */}
-      {selectedGameMode === 'x01' && !selectedScore && (
+      ) : (
         <>
-          <Text style={styles.headerText}>Select X01 Game Score</Text>
-          <View style={styles.buttonRow}>
-            <Button title="301" onPress={() => setSelectedScore(301)} />
-            <Button title="501" onPress={() => setSelectedScore(501)} />
-          </View>
-        </>
-      )}
-
-      {/* Step 2b: For Around the World, show selected mode info */}
-      {selectedGameMode === 'aroundTheWorld' && (
-        <Text style={styles.infoText}>Game: Around the World</Text>
-      )}
-
-      {/* Step 3: Add players once game mode (and for X01 also score) has been selected */}
-      {(selectedGameMode === 'x01' && selectedScore) || selectedGameMode === 'aroundTheWorld' ? (
-        <>
-          {selectedGameMode === 'x01' && (
-            <Text style={styles.infoText}>Selected X01 Score: {selectedScore}</Text>
-          )}
+          <Text style={styles.headerText}>{GAME_CONFIGS[selectedGameMode].name}</Text>
+          {renderSetupFields()}
+          
           <TextInput 
             style={styles.input}
             placeholder="Enter player name"
             value={playerNameInput}
             onChangeText={setPlayerNameInput}
           />
-          <Button 
-            title="Add Player" 
-            onPress={() => {
-              if (playerNameInput.trim()) {
-                if (selectedGameMode === 'x01') {
-                  setPlayers(prev => [
-                    ...prev, 
-                    { name: playerNameInput.trim(), score: selectedScore, throws: [] }
-                  ]);
-                } else if (selectedGameMode === 'aroundTheWorld') {
-                  // For Around the World, each player starts with a current target of 1
-                  setPlayers(prev => [
-                    ...prev,
-                    { name: playerNameInput.trim(), currentTarget: 1, throws: [] }
-                  ]);
-                }
-                setPlayerNameInput("");
-              }
-            }} 
-          />
+          <Button title="Add Player" onPress={handleAddPlayer} />
+          
+          {players.length > 0 && (
+            <>
+              <View style={styles.playerList}>
+                <Text style={styles.subHeaderText}>Players:</Text>
+                {players.map((player, index) => (
+                  <Text key={index} style={styles.playerText}>
+                    {player.name}
+                  </Text>
+                ))}
+              </View>
+              
+              <Button 
+                title="Start Game" 
+                onPress={() => onStartGame({ 
+                  mode: selectedGameMode,
+                  players,
+                  selectedScore: configValues.selectedScore,
+                })}
+              />
+            </>
+          )}
         </>
-      ) : null}
-
-      {players.length > 0 && (
-        <View style={styles.playerList}>
-          <Text style={styles.subHeaderText}>Players:</Text>
-          {players.map((player, index) => (
-            <Text key={index} style={styles.infoText}>
-              {player.name} - {selectedGameMode === 'x01' ? player.score : player.currentTarget}
-            </Text>
-          ))}
-        </View>
-      )}
-      
-      {players.length > 0 && (
-        <Button 
-          title="Start Game" 
-          onPress={() => onStartGame({ 
-            mode: selectedGameMode, 
-            players, 
-            ...(selectedGameMode === 'x01' && { selectedScore })
-          })}
-        />
       )}
     </View>
   );
@@ -134,5 +150,29 @@ const styles = StyleSheet.create({
   playerList: {
     marginVertical: 20,
     alignItems: 'center',
+  },
+  fieldContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  fieldLabel: {
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  playerText: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: 20,
+  },
+  optionButton: {
+    marginHorizontal: 10,
+    minWidth: 80,
   },
 }); 

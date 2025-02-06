@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import useSmartboard from '../useSmartboard';
+import { useSmartboardContext } from '../context/SmartboardContext';
 import { createGameEngine } from '../gameEngine/GameFactory';
 
 export function useGameState(gameConfig) {
-  const { connected, throws, error, mockThrow } = useSmartboard();
+  const { connected, lastThrow, error, mockThrow } = useSmartboardContext();
   const [gameEngine] = useState(() => createGameEngine(gameConfig));
   const [gameState, setGameState] = useState(gameEngine.getGameState());
 
@@ -13,11 +13,10 @@ export function useGameState(gameConfig) {
   };
 
   useEffect(() => {
-    if (throws.length > 0) {
-      const lastThrow = throws[throws.length - 1];
+    if (lastThrow) {
       handleThrow(lastThrow);
     }
-  }, [throws]);
+  }, [lastThrow]);
 
   return {
     ...gameState,

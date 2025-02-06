@@ -1,0 +1,4 @@
+export const GAME_CONSTANTS = {
+  MAX_DARTS_PER_TURN: 3,
+  HIGHLIGHT_DURATION_MS: 5000,
+}; 

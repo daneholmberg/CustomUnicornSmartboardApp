@@ -8,20 +8,20 @@ export class X01GameEngine extends BaseGameEngine {
 
   handleThrow(dart) {
     this.lastHit = dart;
-    const currentPlayer = this.players[this.currentPlayerIndex];
+    const currentPlayer = this.turnManager.getCurrentPlayer();
     const throwValue = dart.score * dart.multiplier;
     
     if (throwValue > currentPlayer.score) {
       this.gameMessage = `${currentPlayer.name} Bust! Turn ends.`;
       currentPlayer.score -= this.currentTurnScore;
-      this.nextPlayer();
+      this.turnManager.nextPlayer();
       this.currentTurnScore = 0;
       return;
     }
 
     currentPlayer.score -= throwValue;
     this.currentTurnScore += throwValue;
-    this.throwsThisTurn++;
+    this.turnManager.incrementThrows();
     
     if (currentPlayer.score === 0) {
       this.gameMessage = `${currentPlayer.name} wins!`;
@@ -30,8 +30,8 @@ export class X01GameEngine extends BaseGameEngine {
 
     this.gameMessage = `${currentPlayer.name} scored ${throwValue}. Score: ${currentPlayer.score}`;
     
-    if (this.isEndOfTurn()) {
-      this.nextPlayer();
+    if (this.turnManager.isEndOfTurn()) {
+      this.turnManager.nextPlayer();
       this.currentTurnScore = 0;
     }
   }
