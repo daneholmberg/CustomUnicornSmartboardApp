@@ -5,10 +5,13 @@ export class BaseGameEngine {
     this.turnManager = new TurnManager(config.players);
     this.gameMessage = '';
     this.lastHit = null;
+    this.completedCount = 0;
   }
 
   setPlayerCompleted(player, message) {
     player.completed = true;
+    this.completedCount++;
+    player.place = this.completedCount;
     this.gameMessage = message;
     this.turnManager.nextPlayer();
   }

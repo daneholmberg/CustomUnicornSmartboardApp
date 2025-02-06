@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { theme } from '../theme';
+import { PlayerMedal } from './PlayerMedal';
 
 export const PlayerCard = ({ 
   player, 
@@ -26,6 +27,8 @@ export const PlayerCard = ({
         )}
         <Text style={styles.score}>{mainScore}</Text>
       </View>
+
+      {player.place && <PlayerMedal place={player.place} />}
 
       {renderStats && (
         <View style={styles.statsContainer}>
