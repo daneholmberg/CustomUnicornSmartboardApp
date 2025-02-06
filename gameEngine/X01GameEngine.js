@@ -9,7 +9,12 @@ export class X01GameEngine extends BaseGameEngine {
     const selectedScore = config.selectedScore || 301;
     const initializedPlayers = config.players.map(player => ({
       ...player,
-      score: selectedScore
+      score: selectedScore,
+      stats: {
+        totalScore: 0,
+        rounds: 0,
+        averagePerRound: 0
+      }
     }));
     
     // Call super first with initialized players
@@ -45,7 +50,9 @@ export class X01GameEngine extends BaseGameEngine {
     this.gameMessage = `${currentPlayer.name} scored ${throwValue}. Score this round: ${this.turnManager.currentTurnScore}`;
     
     if (this.turnManager.willBeEndOfTurn()) {
-      this.turnManager.startOfTurnScore = currentPlayer.score;
+      currentPlayer.stats.totalScore += this.turnManager.currentTurnScore;
+      currentPlayer.stats.rounds += 1;
+      currentPlayer.stats.averagePerRound = Math.round(currentPlayer.stats.totalScore / currentPlayer.stats.rounds);
     }
     
     this.turnManager.incrementThrows();
@@ -58,7 +65,7 @@ export class X01GameEngine extends BaseGameEngine {
       ...state,
       ...turnState,
       selectedScore: this.selectedScore,
-      gameType: 'X01'  // It's also good practice to identify the game type
+      gameType: 'X01',  // It's also good practice to identify the game type
     };
   }
 }
