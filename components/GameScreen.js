@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, Platform } from 'react-native';
 import Dartboard from './Dartboard';
+import { theme } from '../theme';
 
 export default function GameScreen({ 
   title,
@@ -10,25 +11,37 @@ export default function GameScreen({
   error,
   handleThrow,
 }) {
-  const { gameMessage, throwsThisTurn, lastHit } = gameState;
+  const { gameMessage, throwsThisTurn, lastHit, targetNumbers } = gameState;
   
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>{title}</Text>
-      <Text style={styles.infoText}>{gameMessage}</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>{title}</Text>
+        <Text style={styles.gameMessage}>{gameMessage}</Text>
+      </View>
       
       <View style={styles.gameInfo}>
         {renderPlayerInfo()}
-        <Text style={styles.infoText}>
-          Throws this turn: {throwsThisTurn}/3
-        </Text>
+        <View style={styles.throwCounter}>
+          <Text style={styles.throwCounterText}>
+            Throws: {throwsThisTurn}/3
+          </Text>
+        </View>
       </View>
 
-      {error && <Text style={styles.errorText}>Error: {error}</Text>}
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Error: {error}</Text>
+        </View>
+      )}
       
       {(Platform.OS === 'web' || !connected) && (
         <View style={styles.dartboardContainer}>
-          <Dartboard onThrow={handleThrow} lastHit={lastHit} />
+          <Dartboard 
+            onThrow={handleThrow} 
+            lastHit={lastHit} 
+            targetNumbers={targetNumbers}
+          />
         </View>
       )}
     </View>
@@ -38,41 +51,59 @@ export default function GameScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
-    alignItems: 'center',
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.background,
+  },
+  header: {
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.lg,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.lg,
   },
   headerText: {
-    fontSize: 20,
-    marginBottom: 20,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
     textAlign: 'center',
+    marginBottom: theme.spacing.sm,
   },
-  infoText: {
+  gameMessage: {
     fontSize: 16,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  errorText: {
-    color: 'red',
-    marginBottom: 10,
+    color: theme.colors.text.secondary,
     textAlign: 'center',
   },
   gameInfo: {
-    alignItems: 'center',
-    marginBottom: 10,
-    width: '100%',
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.lg,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.lg,
   },
-  playerList: {
-    marginVertical: 20,
-    alignItems: 'center',
-    width: '100%',
+  throwCounter: {
+    backgroundColor: theme.colors.primary,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.sm,
+    marginTop: theme.spacing.md,
   },
-  currentPlayer: {
-    fontWeight: 'bold',
-    color: '#2196F3',
+  throwCounterText: {
+    color: theme.colors.text.primary,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  errorContainer: {
+    backgroundColor: theme.colors.accent,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.sm,
+    marginBottom: theme.spacing.lg,
+  },
+  errorText: {
+    color: theme.colors.text.primary,
+    textAlign: 'center',
   },
   dartboardContainer: {
-    marginTop: 20,
     alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.lg,
+    borderRadius: theme.borderRadius.lg,
   },
 });

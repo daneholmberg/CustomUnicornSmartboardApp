@@ -11,6 +11,10 @@ export class TurnManager {
     return this.throwsThisTurn >= GAME_CONSTANTS.MAX_DARTS_PER_TURN;
   }
 
+  willBeEndOfTurn() {
+    return this.throwsThisTurn + 1 >= GAME_CONSTANTS.MAX_DARTS_PER_TURN;
+  }
+
   nextPlayer() {
     this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
     this.throwsThisTurn = 0;
