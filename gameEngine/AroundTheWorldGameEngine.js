@@ -2,14 +2,17 @@ import { BaseGameEngine } from './BaseGameEngine';
 
 export class AroundTheWorldGameEngine extends BaseGameEngine {
   constructor(config) {
-    super(config);
-    this.targets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25];
-    this.players = config.players.map(player => ({
+    const initializedPlayers = config.players.map(player => ({
       ...player,
-      currentIndex: 0,
-      currentTarget: this.targets[0],
-      completed: false,
+      currentTarget: 1,
+      stats: {
+        attempts: 0,
+        hits: 0,
+        hitRate: 0
+      }
     }));
+    
+    super({ ...config, players: initializedPlayers });
   }
 
   findNextActivePlayer(startIndex) {
@@ -24,23 +27,44 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
   handleThrow(dart) {
     this.lastHit = dart;
     const currentPlayer = this.turnManager.getCurrentPlayer();
-    
-    if (dart.score === currentPlayer.currentTarget) {
-      if (currentPlayer.currentIndex + dart.multiplier < this.targets.length) {
-        currentPlayer.currentIndex += dart.multiplier;
-        currentPlayer.currentTarget = this.targets[currentPlayer.currentIndex];
-        this.gameMessage = `${currentPlayer.name} hit ${dart.score}${dart.multiplier > 1 ? ` with multiplier ${dart.multiplier}` : ''}!`;
-      } else {
-        currentPlayer.completed = true;
-        this.gameMessage = `${currentPlayer.name} wins!`;
-        this.turnManager.currentPlayerIndex = this.findNextActivePlayer(this.turnManager.currentPlayerIndex);
+    const targetNumber = currentPlayer.currentTarget;
+
+    // Update statistics
+    if (dart.score === targetNumber || (targetNumber === 25 && dart.score === 50)) {
+      currentPlayer.stats.hits++;
+      
+      // If not at bullseye yet, advance by multiplier
+      if (targetNumber < 20) {
+        const advance = dart.multiplier;
+        currentPlayer.currentTarget += advance;
+        
+        const skippedNumbers = advance > 1 ? 
+          Array.from({ length: advance - 1 }, (_, i) => targetNumber + i + 1).join(', ') :
+          null;
+          
+        this.gameMessage = `${currentPlayer.name} hit ${targetNumber}${
+          dart.multiplier > 1 ? ` with ${dart.multiplier}x` : ''
+        }!${skippedNumbers ? ` Skipping ${skippedNumbers}.` : ''} Now aiming for ${currentPlayer.currentTarget}`;
+      } 
+      // If at 20, advance to bullseye
+      else if (targetNumber === 20) {
+        currentPlayer.currentTarget = 25;
+        this.gameMessage = `${currentPlayer.name} hit 20! Now aim for the bullseye to win!`;
+      }
+      // If hit bullseye, win
+      else {
+        this.gameMessage = `${currentPlayer.name} wins with a bullseye!`;
         return;
       }
-    } else {
-      this.gameMessage = `${currentPlayer.name} missed ${currentPlayer.currentTarget}`;
     }
+    currentPlayer.stats.attempts++;
+    currentPlayer.stats.hitRate = Math.round((currentPlayer.stats.hits / currentPlayer.stats.attempts) * 100);
 
-    this.turnManager.incrementThrows();
+    if (this.turnManager.willBeEndOfTurn()) {
+      this.turnManager.nextPlayer();
+    } else {
+      this.turnManager.incrementThrows();
+    }
   }
 
   getGameState() {
