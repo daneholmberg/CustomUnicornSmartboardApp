@@ -3,7 +3,7 @@ import { View, StatusBar } from 'react-native';
 import { SmartboardProvider } from './context/SmartboardContext';
 import { DartboardProvider } from './context/DartboardContext';
 import GameSetupScreen from './screens/GameSetupScreen';
-import { GAME_MODES } from './constants';
+import { GAME_MODES } from './constants/gameModes';
 import X01GameScreen from './screens/X01GameScreen';
 import AroundTheWorldGameScreen from './screens/AroundTheWorldGameScreen';
 import { theme } from './theme';

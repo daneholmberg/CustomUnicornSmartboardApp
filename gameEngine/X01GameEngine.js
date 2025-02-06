@@ -1,5 +1,5 @@
 import { BaseGameEngine } from './BaseGameEngine';
-import { GAME_CONSTANTS } from '../constants';
+import { GAME_CONSTANTS } from '../constants/gameConstants';
 import { X01TurnManager } from './X01TurnManager';
 import { TurnManager } from './TurnManager';
 
@@ -43,7 +43,7 @@ export class X01GameEngine extends BaseGameEngine {
     this.turnManager.addToTurnScore(throwValue);
     
     if (currentPlayer.score === 0) {
-      this.gameMessage = `${currentPlayer.name} wins!`;
+      this.setPlayerCompleted(currentPlayer, `${currentPlayer.name} wins!`);
       return;
     }
 

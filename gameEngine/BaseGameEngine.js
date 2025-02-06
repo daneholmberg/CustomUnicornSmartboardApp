@@ -7,6 +7,12 @@ export class BaseGameEngine {
     this.lastHit = null;
   }
 
+  setPlayerCompleted(player, message) {
+    player.completed = true;
+    this.gameMessage = message;
+    this.turnManager.nextPlayer();
+  }
+
   handleThrow(dart) {
     throw new Error('handleThrow must be implemented by subclass');
   }

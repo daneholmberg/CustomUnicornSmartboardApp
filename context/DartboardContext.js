@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { GAME_CONSTANTS } from '../constants';
+import { GAME_CONSTANTS } from '../constants/gameConstants';
 
 const DartboardContext = createContext();
 
