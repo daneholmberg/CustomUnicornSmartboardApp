@@ -42,4 +42,13 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
 
     this.turnManager.incrementThrows();
   }
+
+  getGameState() {
+    const state = super.getGameState();
+    const currentPlayer = this.turnManager.getCurrentPlayer();
+    return {
+      ...state,
+      targetNumbers: [currentPlayer.currentTarget],
+    };
+  }
 }

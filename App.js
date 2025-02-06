@@ -6,6 +6,7 @@ import GameSetupScreen from './screens/GameSetupScreen';
 import { GAME_MODES } from './constants';
 import X01GameScreen from './screens/X01GameScreen';
 import AroundTheWorldGameScreen from './screens/AroundTheWorldGameScreen';
+import { theme } from './theme';
 
 const gameScreens = {
   [GAME_MODES.X01]: X01GameScreen,
@@ -24,13 +25,13 @@ export default function App() {
   return (
     <SmartboardProvider>
       <DartboardProvider>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
           {CurrentGameScreen ? (
             <CurrentGameScreen gameConfig={gameConfig} />
           ) : (
             <GameSetupScreen onStartGame={startGame} />
           )}
-          <StatusBar style="auto" />
+          <StatusBar barStyle="light-content" />
         </View>
       </DartboardProvider>
     </SmartboardProvider>

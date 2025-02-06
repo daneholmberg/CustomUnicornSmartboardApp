@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path, Circle, Text } from 'react-native-svg';
 import { useDartboardHighlight } from '../hooks/useDartboardHighlight';
@@ -16,17 +16,69 @@ const BULL_INNER_RADIUS = OUTER_RADIUS * 0.08;
 const SEGMENT_ANGLE = 360 / NUMBERS.length;
 const ROTATION_OFFSET = -9;
 
-function getSegmentFill(number, multiplier, highlightedSection, defaultColor) {
-  if (!highlightedSection) return defaultColor;
-  if (highlightedSection.score === number && highlightedSection.multiplier === multiplier) {
-    return '#ffff00'; // highlight color
+function usePrevious(value) {
+  const ref = useRef();
+  useEffect(() => {
+    ref.current = value;
+  }, [value]);
+  return ref.current;
+}
+
+function getSegmentFill(number, multiplier, highlightedSection, expectedTarget, targetNumbers, defaultColor) {
+  // Debug logging
+  if (highlightedSection && highlightedSection.score === number && highlightedSection.multiplier === multiplier) {
+    // console.log('Hit detected:', {
+    //   number,
+    //   multiplier,
+    //   highlightedScore: highlightedSection.score,
+    //   targetNumbers,
+    //   isTarget: highlightedSection.score === targetNumbers?.[0]
+    // });
   }
+
+  // First check if this was just hit
+  if (highlightedSection && highlightedSection.score === number && highlightedSection.multiplier === multiplier) {
+    if (targetNumbers?.length) {
+      // In games with targets (like Around the World)
+      const wasCorrectHit = highlightedSection.score === expectedTarget;
+      // console.log('Checking hit:', { wasCorrectHit, score: highlightedSection.score, target: expectedTarget });
+      
+      if (wasCorrectHit) {
+        return '#ffff00'; // Yellow highlight for hitting the correct target
+      }
+      return '#cccccc'; // Grey highlight for hitting wrong number
+    }
+    return '#ffff00'; // Yellow highlight for games without specific targets (like X01)
+  }
+
+  // Then check if this is a target number
+  if (targetNumbers?.includes(number)) {
+    // For triple ring, blend the target highlight with the red
+    if (multiplier === 3) {
+      return '#ffb8b8'; // Blend of target color and triple red
+    }
+    // For double ring, blend the target highlight with the green
+    if (multiplier === 2) {
+      return '#88ff88'; // Blend of target color and double green
+    }
+    return '#b8f7b8'; // Default target highlight for singles
+  }
+  
   return defaultColor;
 }
 
-export default function Dartboard({ onThrow, lastHit }) {
+export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
   const highlightedSection = useDartboardHighlight(lastHit);
-
+  // Instead of relying on usePrevious (which fails if the parent mutates targetNumbers in place),
+  // capture the expected target at the moment of the hit in local state.
+  const [savedExpectedTarget, setSavedExpectedTarget] = React.useState(targetNumbers?.[0]);
+  React.useEffect(() => {
+    if (lastHit) {
+      setSavedExpectedTarget(targetNumbers?.[0]);
+    }
+  }, [lastHit, targetNumbers]);
+  const expectedTarget = savedExpectedTarget;
+  
   const createSegmentPath = (startAngle, endAngle, innerRadius, outerRadius) => {
     const startRadians = (startAngle + ROTATION_OFFSET - 90) * Math.PI / 180;
     const endRadians = (endAngle + ROTATION_OFFSET - 90) * Math.PI / 180;
@@ -60,21 +112,21 @@ export default function Dartboard({ onThrow, lastHit }) {
           {/* Main segment */}
           <Path
             d={createSegmentPath(startAngle, endAngle, BULL_OUTER_RADIUS, DOUBLE_RADIUS)}
-            fill={getSegmentFill(number, 1, highlightedSection, isEven ? 'white' : 'black')}
+            fill={getSegmentFill(number, 1, highlightedSection, expectedTarget, targetNumbers, isEven ? 'white' : 'black')}
             onPress={() => onThrow({ score: number, multiplier: 1 })}
           />
           
           {/* Double ring */}
           <Path
             d={createSegmentPath(startAngle, endAngle, DOUBLE_RADIUS, OUTER_RADIUS)}
-            fill={getSegmentFill(number, 2, highlightedSection, "#44ff44")}
+            fill={getSegmentFill(number, 2, highlightedSection, expectedTarget, targetNumbers, "#44ff44")}
             onPress={() => onThrow({ score: number, multiplier: 2 })}
           />
           
           {/* Triple ring */}
           <Path
             d={createSegmentPath(startAngle, endAngle, TRIPLE_RADIUS, TRIPLE_RADIUS + TRIPLE_RING_WIDTH)}
-            fill={getSegmentFill(number, 3, highlightedSection, "#ff4444")}
+            fill={getSegmentFill(number, 3, highlightedSection, expectedTarget, targetNumbers, "#ff4444")}
             onPress={() => onThrow({ score: number, multiplier: 3 })}
           />
         </React.Fragment>
@@ -126,7 +178,12 @@ export default function Dartboard({ onThrow, lastHit }) {
           cx={CENTER}
           cy={CENTER}
           r={BULL_OUTER_RADIUS}
-          fill={highlightedSection?.score === 25 && highlightedSection?.multiplier === 1 ? '#ffff00' : "#44ff44"}
+          fill={
+            targetNumbers?.includes(25) ? '#b8f7b8' :
+            (highlightedSection?.score === 25 && highlightedSection?.multiplier === 1) ? 
+              (highlightedSection?.score === expectedTarget ? '#ffff00' : '#cccccc') :
+            "#44ff44"
+          }
           onPress={() => onThrow({ score: 25, multiplier: 1 })}
         />
         
@@ -135,7 +192,12 @@ export default function Dartboard({ onThrow, lastHit }) {
           cx={CENTER}
           cy={CENTER}
           r={BULL_INNER_RADIUS}
-          fill={highlightedSection?.score === 25 && highlightedSection?.multiplier === 2 ? '#ffff00' : "#ff4444"}
+          fill={
+            targetNumbers?.includes(25) ? '#b8f7b8' :
+            (highlightedSection?.score === 25 && highlightedSection?.multiplier === 2) ?
+              (highlightedSection?.score === expectedTarget ? '#ffff00' : '#cccccc') :
+            "#ff4444"
+          }
           onPress={() => onThrow({ score: 25, multiplier: 2 })}
         />
 

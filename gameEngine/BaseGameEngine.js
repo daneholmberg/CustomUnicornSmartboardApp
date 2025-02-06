@@ -16,6 +16,7 @@ export class BaseGameEngine {
       ...this.turnManager.getState(),
       gameMessage: this.gameMessage,
       lastHit: this.lastHit,
+      targetNumbers: [], // Default to empty array, subclasses can override
     };
   }
 }

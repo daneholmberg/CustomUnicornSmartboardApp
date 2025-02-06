@@ -1,33 +1,40 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useGameState } from '../hooks/useGameState';
 import GameScreen from '../components/GameScreen';
+import { theme } from '../theme';
 
 export default function AroundTheWorldGameScreen({ gameConfig }) {
   const gameState = useGameState(gameConfig);
   
   const renderPlayerInfo = () => (
-    <>
-      <Text style={styles.infoText}>
+    <View style={styles.playerInfoContainer}>
+      <Text style={styles.currentTurnText}>
         Current Turn: {gameState.players[gameState.currentPlayerIndex].name}
       </Text>
-      <Text style={styles.infoText}>
+      <Text style={styles.targetText}>
         Target: {gameState.players[gameState.currentPlayerIndex].currentTarget}
       </Text>
-      {gameState.players.map((player, index) => (
-        <Text key={index} style={[
-          styles.infoText,
-          index === gameState.currentPlayerIndex && styles.currentPlayer
-        ]}>
-          {player.name}: Target is {player.currentTarget}
-        </Text>
-      ))}
-    </>
+      <View style={styles.playerList}>
+        {gameState.players.map((player, index) => (
+          <View 
+            key={index} 
+            style={[
+              styles.playerCard,
+              index === gameState.currentPlayerIndex && styles.activePlayer
+            ]}
+          >
+            <Text style={styles.playerName}>{player.name}</Text>
+            <Text style={styles.targetNumber}>Target: {player.currentTarget}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
   );
 
   return (
     <GameScreen
-      title="Game: Around the World"
+      title="Around the World"
       gameState={gameState}
       renderPlayerInfo={renderPlayerInfo}
       connected={gameState.connected}
@@ -37,14 +44,39 @@ export default function AroundTheWorldGameScreen({ gameConfig }) {
   );
 }
 
-const styles = {
-  infoText: {
-    fontSize: 16,
-    marginBottom: 10,
+const styles = StyleSheet.create({
+  playerInfoContainer: {
+    gap: theme.spacing.md,
+  },
+  currentTurnText: {
+    fontSize: 18,
+    color: theme.colors.text.primary,
     textAlign: 'center',
   },
-  currentPlayer: {
+  targetText: {
+    fontSize: 24,
+    color: theme.colors.text.accent,
+    textAlign: 'center',
     fontWeight: 'bold',
-    color: '#2196F3',
   },
-}; 
+  playerList: {
+    gap: theme.spacing.sm,
+  },
+  playerCard: {
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.sm,
+  },
+  activePlayer: {
+    backgroundColor: theme.colors.accent,
+  },
+  playerName: {
+    color: theme.colors.text.primary,
+    fontSize: 16,
+    marginBottom: theme.spacing.xs,
+  },
+  targetNumber: {
+    color: theme.colors.text.secondary,
+    fontSize: 14,
+  },
+}); 
