@@ -12,7 +12,8 @@ export default function X01GameScreen({ gameConfig }) {
     connected, 
     error,
     throwsThisTurn,
-    handleThrow
+    handleThrow,
+    lastHit
   } = useX01Game(gameConfig.players);
 
   return (
@@ -47,7 +48,7 @@ export default function X01GameScreen({ gameConfig }) {
       {/* Show dartboard on web or when not connected to real board */}
       {(Platform.OS === 'web' || !connected) && (
         <View style={styles.dartboardContainer}>
-          <Dartboard onThrow={handleThrow} />
+          <Dartboard onThrow={handleThrow} lastHit={lastHit} />
         </View>
       )}
     </View>
