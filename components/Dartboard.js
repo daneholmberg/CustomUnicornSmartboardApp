@@ -21,7 +21,7 @@ function usePrevious(value) {
   return ref.current;
 }
 
-function getSegmentFill(number, multiplier, highlightedSection, expectedTarget, targetNumbers, defaultColor) {
+function getSegmentFill(number, multiplier, highlightedSection, expectedTarget, targetNumbers, defaultColor, isEvenSegment) {
   // Debug logging
   if (highlightedSection && highlightedSection.score === number && highlightedSection.multiplier === multiplier) {
     // console.log('Hit detected:', {
@@ -36,32 +36,35 @@ function getSegmentFill(number, multiplier, highlightedSection, expectedTarget, 
   // First check if this was just hit
   if (highlightedSection && highlightedSection.score === number && highlightedSection.multiplier === multiplier) {
     if (targetNumbers?.length) {
-      // In games with targets (like Around the World)
       const wasCorrectHit = highlightedSection.score === expectedTarget;
       // console.log('Checking hit:', { wasCorrectHit, score: highlightedSection.score, target: expectedTarget });
       
       if (wasCorrectHit) {
-        return '#ffff00'; // Yellow highlight for hitting the correct target
+        return '#ffff00';
       }
-      return '#cccccc'; // Grey highlight for hitting wrong number
+      return '#cccccc';
     }
-    return '#ffff00'; // Yellow highlight for games without specific targets (like X01)
+    return '#ffff00';
   }
 
-  // Then check if this is a target number
+  // Check if this is a target number
   if (targetNumbers?.includes(number)) {
-    // For triple ring, blend the target highlight with the red
     if (multiplier === 3) {
-      return '#ffb8b8'; // Blend of target color and triple red
+      return '#ffb8b8';
     }
-    // For double ring, blend the target highlight with the green
     if (multiplier === 2) {
-      return '#88ff88'; // Blend of target color and double green
+      return '#88ff88';
     }
-    return '#b8f7b8'; // Default target highlight for singles
+    return '#b8f7b8';
   }
   
-  return defaultColor;
+  // Handle alternating colors for double and triple rings
+  if (multiplier === 2 || multiplier === 3) {
+    return isEvenSegment ? '#004400' : '#8b0000'; // Darker green and deeper red to match Narwhal board
+  }
+  
+  // For main segments (multiplier === 1)
+  return defaultColor === 'white' ? '#f4e4bc' : '#000000'; // Cream color for white sections, black for black sections
 }
 
 export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
@@ -139,14 +142,14 @@ export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
           {/* Double ring */}
           <Path
             d={createSegmentPath(startAngle, endAngle, DOUBLE_RADIUS, OUTER_RADIUS)}
-            fill={getSegmentFill(number, 2, highlightedSection, expectedTarget, targetNumbers, "#44ff44")}
+            fill={getSegmentFill(number, 2, highlightedSection, expectedTarget, targetNumbers, "#44ff44", isEven)}
             onPress={() => onThrow({ score: number, multiplier: 2 })}
           />
           
           {/* Triple ring */}
           <Path
             d={createSegmentPath(startAngle, endAngle, TRIPLE_RADIUS, TRIPLE_RADIUS + TRIPLE_RING_WIDTH)}
-            fill={getSegmentFill(number, 3, highlightedSection, expectedTarget, targetNumbers, "#ff4444")}
+            fill={getSegmentFill(number, 3, highlightedSection, expectedTarget, targetNumbers, "#ff4444", isEven)}
             onPress={() => onThrow({ score: number, multiplier: 3 })}
           />
         </React.Fragment>
@@ -192,7 +195,7 @@ export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
     >
       <Svg width={boardSize} height={boardSize}>
         {/* Background circle */}
-        <Circle cx={CENTER} cy={CENTER} r={OUTER_RADIUS} fill="#235c3e" />
+        <Circle cx={CENTER} cy={CENTER} r={OUTER_RADIUS} fill="#000000" />
         
         {/* Render all segments */}
         {renderSegments()}
@@ -206,7 +209,7 @@ export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
             targetNumbers?.includes(25) ? '#b8f7b8' :
             (highlightedSection?.score === 25 && highlightedSection?.multiplier === 1) ? 
               (highlightedSection?.score === expectedTarget ? '#ffff00' : '#cccccc') :
-            "#44ff44"
+            "#004400"  // Darker green to match the board
           }
           onPress={() => onThrow({ score: 25, multiplier: 1 })}
         />
@@ -220,7 +223,7 @@ export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
             targetNumbers?.includes(25) ? '#b8f7b8' :
             (highlightedSection?.score === 25 && highlightedSection?.multiplier === 2) ?
               (highlightedSection?.score === expectedTarget ? '#ffff00' : '#cccccc') :
-            "#ff4444"
+            "#8b0000"  // Deeper red to match the board
           }
           onPress={() => onThrow({ score: 25, multiplier: 2 })}
         />

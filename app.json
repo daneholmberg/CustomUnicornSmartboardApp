@@ -13,7 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kfue.dartGame",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -31,6 +35,11 @@
           "initialOrientation": "LANDSCAPE_LEFT"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "acbdf04a-b5e9-4b74-b4c0-dafe3a3ab9ab"
+      }
+    }
   }
 }
