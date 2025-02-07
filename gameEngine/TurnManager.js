@@ -56,4 +56,15 @@ export class TurnManager {
   isGameOver() {
     return this.players.filter(player => !player.completed).length <= 1;
   }
+
+  undoThrow() {
+    if (this.throwsThisTurn > 0) {
+      this.throwsThisTurn--;
+    } else if (this.throwsThisTurn === 0) {
+      // Go back to previous player's last throw
+      const prevIndex = (this.currentPlayerIndex - 1 + this.players.length) % this.players.length;
+      this.currentPlayerIndex = prevIndex;
+      this.throwsThisTurn = GAME_CONSTANTS.MAX_DARTS_PER_TURN - 1;
+    }
+  }
 } 

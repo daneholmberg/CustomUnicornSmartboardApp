@@ -12,6 +12,12 @@ export function useGameState(gameConfig) {
     setGameState(gameEngine.getGameState());
   };
 
+  const handleUndo = () => {
+    if (gameEngine.undoLastThrow()) {
+      setGameState(gameEngine.getGameState());
+    }
+  };
+
   useEffect(() => {
     if (lastThrow) {
       handleThrow(lastThrow);
@@ -23,6 +29,7 @@ export function useGameState(gameConfig) {
     connected,
     error,
     handleThrow,
+    handleUndo,
     mockThrow,
   };
 }

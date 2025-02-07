@@ -1,4 +1,5 @@
 import { TurnManager } from './TurnManager';
+import { GAME_CONSTANTS } from '../constants/gameConstants';
 
 export class X01TurnManager extends TurnManager {
   constructor(players) {
@@ -24,5 +25,18 @@ export class X01TurnManager extends TurnManager {
       currentTurnScore: this.currentTurnScore,
       startOfTurnScore: this.startOfTurnScore,
     };
+  }
+
+  undoThrow() {
+    if (this.throwsThisTurn > 0) {
+      this.throwsThisTurn--;
+    } else if (this.throwsThisTurn === 0) {
+      // Go back to previous player's last throw
+      const prevIndex = (this.currentPlayerIndex - 1 + this.players.length) % this.players.length;
+      this.currentPlayerIndex = prevIndex;
+      this.throwsThisTurn = GAME_CONSTANTS.MAX_DARTS_PER_TURN - 1;
+      // Reset current turn score when going back to previous player
+      this.currentTurnScore = 0;
+    }
   }
 } 

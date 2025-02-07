@@ -33,6 +33,7 @@ export default function X01GameScreen({ gameConfig }) {
       connected={gameState.connected}
       error={gameState.error}
       handleThrow={gameState.handleThrow}
+      onUndo={gameState.handleUndo}
     />
   );
 }

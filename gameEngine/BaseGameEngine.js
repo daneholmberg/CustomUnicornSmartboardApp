@@ -6,6 +6,8 @@ export class BaseGameEngine {
     this.gameMessage = '';
     this.lastHit = null;
     this.completedCount = 0;
+    this.throwHistory = [];
+    this.hitHistory = [];
   }
 
   setPlayerCompleted(player, message) {
@@ -16,7 +18,29 @@ export class BaseGameEngine {
     this.turnManager.nextPlayer();
   }
 
+  undoLastThrow() {
+    const lastThrow = this.throwHistory.pop();
+    if (!lastThrow) return false;
+    
+    this.lastHit = this.hitHistory.pop() || null;
+    
+    this.turnManager.undoThrow();
+    
+    return true;
+  }
+
   handleThrow(dart) {
+    if (this.lastHit) {
+      this.hitHistory.push(this.lastHit);
+    }
+    this.lastHit = dart;
+    
+    this.throwHistory.push({
+      dart,
+      playerIndex: this.turnManager.currentPlayerIndex,
+      throwsThisTurn: this.turnManager.throwsThisTurn
+    });
+    
     throw new Error('handleThrow must be implemented by subclass');
   }
 
@@ -26,6 +50,7 @@ export class BaseGameEngine {
       gameMessage: this.gameMessage,
       lastHit: this.lastHit,
       targetNumbers: [], // Default to empty array, subclasses can override
+      hasHistory: this.throwHistory.length > 0,
     };
   }
 }
