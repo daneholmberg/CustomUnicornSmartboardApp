@@ -7,10 +7,10 @@ const NUMBERS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9,
 
 const calculateBoardSize = (containerWidth, containerHeight) => {
   // Leave some padding around the board
-  const maxWidth = containerWidth * 0.9;
-  const maxHeight = containerHeight * 0.9;
+  const maxWidth = containerWidth * 0.95;
+  const maxHeight = containerHeight * 0.95;
   // Use the smaller dimension to ensure the board fits
-  return Math.min(maxWidth, maxHeight, 400);
+  return Math.min(maxWidth, maxHeight);
 };
 
 function usePrevious(value) {
@@ -239,5 +239,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     height: '100%',
+    minHeight: 0, // Important for flex behavior
   },
 }); 

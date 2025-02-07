@@ -2,18 +2,20 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { theme } from '../theme';
 
-export const AroundTheWorldStats = ({ stats }) => (
+export const AroundTheWorldStats = ({ stats, textSize = 10 }) => (
   <View style={styles.container}>
-    <Text style={styles.label}>HIT RATE</Text>
-    <Text style={styles.value}>{stats?.hitRate || 0}%</Text>
+    <Text style={[styles.label, { fontSize: textSize }]}>HIT RATE:</Text>
+    <Text style={[styles.value, { fontSize: textSize }]}>
+      {stats?.hitRate || 0}%
+    </Text>
   </View>
 );
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: theme.spacing.xs,
   },
   label: {
     color: theme.colors.text.secondary,

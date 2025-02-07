@@ -1,18 +1,30 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useRef } from 'react';
+import { StyleSheet, View, ScrollView } from 'react-native';
 import { useGameState } from '../hooks/useGameState';
 import GameScreen from '../components/GameScreen';
 import { PlayerCard } from '../components/PlayerCard';
 import { AroundTheWorldStats } from '../components/AroundTheWorldStats';
 import { theme } from '../theme';
 import { AROUND_THE_WORLD_TARGETS } from '../constants/gameConstants';
+import { useAutoScroll } from '../hooks/useAutoScroll';
 
 export default function AroundTheWorldGameScreen({ gameConfig }) {
   const gameState = useGameState(gameConfig);
+  const scrollViewRef = useRef(null);
+  
+  useAutoScroll(scrollViewRef, gameState.currentPlayerIndex, gameState.players.length);
   
   const renderPlayerInfo = () => (
     <View style={styles.container}>
-      <View style={styles.players}>
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.players,
+          gameState.players.length <= 5 && styles.fitContent
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {gameState.players.map((player, index) => (
           <PlayerCard
             key={index}
@@ -21,9 +33,10 @@ export default function AroundTheWorldGameScreen({ gameConfig }) {
             mainScore={AROUND_THE_WORLD_TARGETS[player.targetIndex]}
             mainScoreLabel="AIMING FOR"
             renderStats={(player) => <AroundTheWorldStats stats={player.stats} />}
+            playerCount={gameState.players.length}
           />
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 
@@ -46,5 +59,12 @@ const styles = StyleSheet.create({
   },
   players: {
     gap: theme.spacing.xs,
+  },
+  scrollView: {
+    padding: theme.spacing.xs,
+  },
+  fitContent: {
+    flex: 1,
+    justifyContent: 'space-evenly',
   },
 }); 

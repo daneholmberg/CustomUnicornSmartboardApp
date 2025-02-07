@@ -8,33 +8,94 @@ export const PlayerCard = ({
   isActive, 
   renderStats,
   mainScore, 
-  mainScoreLabel 
+  mainScoreLabel,
+  playerCount 
 }) => {
+  // Make cards much more compact
+  const getDynamicSizes = (count) => {
+    switch (count) {
+      case 2:
+        return {
+          containerHeight: 60, // Reduced from 90
+          fontSize: 14,
+          scoreSize: 24,
+          padding: theme.spacing.sm,
+          statsSize: 11
+        };
+      case 3:
+        return {
+          containerHeight: 50, // Reduced from 70
+          fontSize: 13,
+          scoreSize: 20,
+          padding: theme.spacing.xs,
+          statsSize: 10
+        };
+      case 4:
+      case 5:
+        return {
+          containerHeight: 40, // Reduced from 50
+          fontSize: 12,
+          scoreSize: 18,
+          padding: theme.spacing.xs,
+          statsSize: 9
+        };
+      default:
+        return {
+          containerHeight: 35, // Reduced from 45
+          fontSize: 11,
+          scoreSize: 16,
+          padding: theme.spacing.xs,
+          statsSize: 8
+        };
+    }
+  };
+
+  const sizes = getDynamicSizes(playerCount);
+
   return (
-    <View style={[styles.container, isActive && styles.activeContainer]}>
-      <View style={styles.header}>
-        <Text style={styles.name}>{player.name}</Text>
-        {isActive && (
-          <View style={styles.activeBadge}>
-            <Text style={styles.activeBadgeText}>Active</Text>
+    <View style={[
+      styles.container, 
+      isActive && styles.activeContainer,
+      { 
+        height: sizes.containerHeight,
+        padding: sizes.padding,
+        gap: sizes.padding
+      }
+    ]}>
+      <View style={styles.leftSection}>
+        <View style={[styles.header, { gap: theme.spacing.xs }]}>
+          <Text style={[styles.name, { fontSize: sizes.fontSize }]}>
+            {player.name}
+          </Text>
+          {isActive && (
+            <View style={[styles.activeBadge, { padding: 2 }]}>
+              <Text style={[styles.activeBadgeText, { fontSize: sizes.statsSize }]}>
+                Active
+              </Text>
+            </View>
+          )}
+        </View>
+        {renderStats && (
+          <View style={[styles.statsContainer, { marginTop: 1 }]}>
+            {React.cloneElement(renderStats(player), { 
+              textSize: sizes.statsSize 
+            })}
           </View>
         )}
       </View>
-
-      <View style={styles.scoreContainer}>
+      
+      <View style={styles.scoreSection}>
         {mainScoreLabel && (
-          <Text style={styles.scoreLabel}>{mainScoreLabel}</Text>
+          <Text style={[styles.scoreLabel, { fontSize: sizes.statsSize }]}>
+            {mainScoreLabel}
+          </Text>
         )}
-        <Text style={styles.score}>{mainScore}</Text>
+        <Text style={[styles.score, { fontSize: sizes.scoreSize }]}>
+          {mainScore}
+        </Text>
       </View>
 
       {player.place && <PlayerMedal place={player.place} />}
-
-      {renderStats && (
-        <View style={styles.statsContainer}>
-          {renderStats(player)}
-        </View>
-      )}
     </View>
   );
 };
@@ -43,9 +104,11 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.colors.surface2,
     borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
     marginVertical: theme.spacing.xs,
     width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     ...theme.elevation.small,
   },
   activeContainer: {
@@ -55,13 +118,16 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.02 }],
     ...theme.elevation.medium,
   },
+  leftSection: {
+    flex: 1,
+    marginRight: theme.spacing.sm,
+  },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: theme.spacing.xs,
   },
   name: {
-    fontSize: 14,
     fontWeight: '600',
     color: theme.colors.text.primary,
   },
@@ -76,24 +142,20 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
   },
-  scoreContainer: {
-    alignItems: 'center',
-    marginVertical: theme.spacing.xs,
+  scoreSection: {
+    alignItems: 'flex-end',
+    minWidth: 60, // Reduce from 80
   },
   scoreLabel: {
     fontSize: 10,
     color: theme.colors.text.secondary,
-    marginBottom: 2,
+    marginBottom: -2,
   },
   score: {
-    fontSize: 24,
     fontWeight: '700',
     color: theme.colors.text.primary,
   },
   statsContainer: {
     marginTop: theme.spacing.xs,
-    paddingTop: theme.spacing.xs,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.text.secondary + '20',
   },
 }); 

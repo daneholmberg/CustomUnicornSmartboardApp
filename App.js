@@ -22,7 +22,7 @@ export default function App() {
       try {
         if (Platform.OS !== 'web') {
           await ScreenOrientation.lockAsync(
-            ScreenOrientation.OrientationLock.LANDSCAPE_RIGHT
+            ScreenOrientation.OrientationLock.LANDSCAPE_LEFT
           );
         }
       } catch (error) {
