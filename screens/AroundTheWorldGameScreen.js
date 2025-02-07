@@ -8,7 +8,7 @@ import { theme } from '../theme';
 import { AROUND_THE_WORLD_TARGETS } from '../constants/gameConstants';
 import { useAutoScroll } from '../hooks/useAutoScroll';
 
-export default function AroundTheWorldGameScreen({ gameConfig }) {
+export default function AroundTheWorldGameScreen({ gameConfig, onReset, onRestart }) {
   const gameState = useGameState(gameConfig);
   const scrollViewRef = useRef(null);
   
@@ -49,6 +49,8 @@ export default function AroundTheWorldGameScreen({ gameConfig }) {
       error={gameState.error}
       handleThrow={gameState.handleThrow}
       onUndo={gameState.handleUndo}
+      onReset={onReset}
+      onRestart={onRestart}
     />
   );
 }

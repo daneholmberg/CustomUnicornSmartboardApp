@@ -12,6 +12,8 @@ export default function GameScreen({
   error,
   handleThrow,
   onUndo,
+  onReset,
+  onRestart,
 }) {
   const orientation = useOrientation();
   const { throwsThisTurn, lastHit, targetNumbers } = gameState;
@@ -25,7 +27,24 @@ export default function GameScreen({
         orientation === 'landscape' && styles.landscapeContainer
       ]}>
         <View style={[styles.header, theme.elevation.small]}>
-          <Text style={styles.headerTitle}>{title}</Text>
+          <View style={styles.headerTop}>
+            <View style={styles.headerLeft} />
+            <Text style={styles.headerTitle}>{title}</Text>
+            <View style={styles.headerControls}>
+              <TouchableOpacity 
+                style={[styles.controlButton, styles.restartButton]}
+                onPress={onRestart}
+              >
+                <Text style={styles.controlButtonText}>↺ Restart Game</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.controlButton, styles.exitButton]}
+                onPress={onReset}
+              >
+                <Text style={styles.controlButtonText}>✕ Exit Game</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
           
           <View style={styles.messageContainer}>
             <Text style={styles.gameMessage}>{gameMessage}</Text>
@@ -94,12 +113,44 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
     minHeight: 60,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xs,
+  },
+  headerLeft: {
+    width: 180,
+  },
+  headerControls: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  controlButton: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+    ...theme.elevation.tiny,
+  },
+  restartButton: {
+    backgroundColor: theme.colors.primary,
+  },
+  exitButton: {
+    backgroundColor: theme.colors.accent,
+  },
+  controlButtonText: {
+    color: theme.colors.text.primary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: theme.colors.text.primary,
+    position: 'absolute',
+    left: 0,
+    right: 0,
     textAlign: 'center',
-    marginBottom: theme.spacing.xs,
   },
   messageContainer: {
     backgroundColor: theme.colors.primary,

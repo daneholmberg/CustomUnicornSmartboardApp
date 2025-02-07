@@ -7,7 +7,7 @@ import { X01Stats } from '../components/X01Stats';
 import { theme } from '../theme';
 import { useAutoScroll } from '../hooks/useAutoScroll';
 
-export default function X01GameScreen({ gameConfig }) {
+export default function X01GameScreen({ gameConfig, onReset, onRestart }) {
   const gameState = useGameState(gameConfig);
   const scrollViewRef = useRef(null);
   
@@ -47,6 +47,8 @@ export default function X01GameScreen({ gameConfig }) {
       error={gameState.error}
       handleThrow={gameState.handleThrow}
       onUndo={gameState.handleUndo}
+      onReset={onReset}
+      onRestart={onRestart}
     />
   );
 }

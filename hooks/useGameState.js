@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSmartboardContext } from '../context/SmartboardContext';
 import { createGameEngine } from '../gameEngine/GameFactory';
 
 export function useGameState(gameConfig) {
   const { connected, lastThrow, error, mockThrow } = useSmartboardContext();
-  const [gameEngine] = useState(() => createGameEngine(gameConfig));
+  
+  // Use useMemo instead of useState to recreate the game engine when gameConfig changes
+  const gameEngine = useMemo(() => createGameEngine(gameConfig), [gameConfig]);
   const [gameState, setGameState] = useState(gameEngine.getGameState());
 
   const handleThrow = (dart) => {
@@ -22,6 +24,11 @@ export function useGameState(gameConfig) {
       handleThrow(lastThrow);
     }
   }, [lastThrow]);
+
+  // Reset game state when gameConfig changes
+  useEffect(() => {
+    setGameState(gameEngine.getGameState());
+  }, [gameEngine]);
 
   return {
     ...gameState,

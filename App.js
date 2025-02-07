@@ -36,6 +36,15 @@ export default function App() {
     setGameConfig(config);
   };
 
+  const resetGame = () => {
+    setGameConfig(null);
+  };
+
+  const restartGame = () => {
+    // Create a new game with the same config to reset all state
+    setGameConfig({ ...gameConfig });
+  };
+
   const CurrentGameScreen = gameConfig ? gameScreens[gameConfig.mode] : null;
 
   return (
@@ -43,7 +52,11 @@ export default function App() {
       <DartboardProvider>
         <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
           {CurrentGameScreen ? (
-            <CurrentGameScreen gameConfig={gameConfig} />
+            <CurrentGameScreen 
+              gameConfig={gameConfig} 
+              onReset={resetGame}
+              onRestart={restartGame}
+            />
           ) : (
             <GameSetupScreen onStartGame={startGame} />
           )}
