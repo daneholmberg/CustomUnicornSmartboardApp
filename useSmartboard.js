@@ -1,17 +1,25 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
+import smartboardMock from './smartboard/smartboard-mock';
+
+// Only import real smartboard in production
+let smartboardReal;
+if (process.env.NODE_ENV === 'prod') {
+  smartboardReal = require('./smartboard/smartboard').default;
+}
 
 /**
- * Dynamically require real or mock smartboard, based on platform
+ * Get the appropriate smartboard implementation
  */
-let smartboard;
-if (Platform.OS === 'web') {
-  smartboard = require('./smartboard/smartboard-mock')();
-} else if (process.env.NODE_ENV === 'prod') {
-  smartboard = require('./smartboard/smartboard')();
-} else {
-  smartboard = require('./smartboard/smartboard-mock')();
-}
+const getSmartboard = () => {
+  // Always use mock unless explicitly in production
+  if (process.env.NODE_ENV !== 'prod') {
+    return smartboardMock();
+  }
+  return smartboardReal();
+};
+
+const smartboard = getSmartboard();
 
 /**
  * Generate a random dart throw
@@ -33,26 +41,17 @@ export default function useSmartboard() {
 
   // Callback for manual mock throws
   const mockThrow = useCallback(() => {
-    if (Platform.OS === 'web') {
-      setThrows(prev => [...prev, generateMockThrow()]);
-    }
+    setThrows(prev => [...prev, generateMockThrow()]);
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === 'web') {
-      // For web, use mock implementation
+    // Always use mock implementation in development
+    if (process.env.NODE_ENV !== 'prod') {
       setConnected(true);
-      
-      // Optional: Automatic throws every 2 seconds
-    //   const mockInterval = setInterval(() => {
-    //     setThrows(prev => [...prev, generateMockThrow()]);
-    //   }, 2000); // Reduced from 5000ms to 2000ms for more frequent throws
-
-    //   return () => clearInterval(mockInterval);
-        return () => {};
+      return () => {};
     }
     
-    // Normal BLE implementation for native platforms
+    // Normal BLE implementation only in production
     try {
       smartboard.startScan();
       smartboard.connect("fake-uuid-here", (peripheral) => {

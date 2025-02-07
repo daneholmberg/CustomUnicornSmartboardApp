@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StatusBar } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StatusBar, Platform } from 'react-native';
 import { SmartboardProvider } from './context/SmartboardContext';
 import { DartboardProvider } from './context/DartboardContext';
 import GameSetupScreen from './screens/GameSetupScreen';
@@ -7,6 +7,7 @@ import { GAME_MODES } from './constants/gameModes';
 import X01GameScreen from './screens/X01GameScreen';
 import AroundTheWorldGameScreen from './screens/AroundTheWorldGameScreen';
 import { theme } from './theme';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 const gameScreens = {
   [GAME_MODES.X01]: X01GameScreen,
@@ -15,6 +16,21 @@ const gameScreens = {
 
 export default function App() {
   const [gameConfig, setGameConfig] = useState(null);
+
+  useEffect(() => {
+    async function lockOrientation() {
+      try {
+        if (Platform.OS !== 'web') {
+          await ScreenOrientation.lockAsync(
+            ScreenOrientation.OrientationLock.LANDSCAPE_RIGHT
+          );
+        }
+      } catch (error) {
+        console.warn('Failed to lock orientation:', error);
+      }
+    }
+    lockOrientation();
+  }, []);
 
   const startGame = (config) => {
     setGameConfig(config);
@@ -31,7 +47,7 @@ export default function App() {
           ) : (
             <GameSetupScreen onStartGame={startGame} />
           )}
-          <StatusBar barStyle="light-content" />
+          <StatusBar hidden />
         </View>
       </DartboardProvider>
     </SmartboardProvider>

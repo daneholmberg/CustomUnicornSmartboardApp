@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, Platform, TouchableOpacity } from 'react-native';
 import Dartboard from './Dartboard';
 import { theme } from '../theme';
+import { useOrientation } from '../hooks/useOrientation';
 
 export default function GameScreen({ 
   title,
@@ -12,55 +13,63 @@ export default function GameScreen({
   handleThrow,
   onUndo,
 }) {
+  const orientation = useOrientation();
   const { throwsThisTurn, lastHit, targetNumbers } = gameState;
   // Get gameMessage but provide default if none exists
   const gameMessage = gameState.gameMessage || "Game in progress";
   
   return (
     <View style={styles.container}>
-      <View style={[styles.header, theme.elevation.small]}>
-        <Text style={styles.headerTitle}>{title}</Text>
+      <View style={[
+        styles.scrollContainer,
+        orientation === 'landscape' && styles.landscapeContainer
+      ]}>
+        <View style={[styles.header, theme.elevation.small]}>
+          <Text style={styles.headerTitle}>{title}</Text>
+          
+          <View style={styles.messageContainer}>
+            <Text style={styles.gameMessage}>{gameMessage}</Text>
+            <View style={styles.throwInfo}>
+              <TouchableOpacity 
+                style={[
+                  styles.undoButton,
+                  !gameState.hasHistory && styles.undoButtonDisabled
+                ]}
+                onPress={onUndo}
+                disabled={!gameState.hasHistory}
+              >
+                <Text style={styles.undoButtonText}>↩ Undo</Text>
+              </TouchableOpacity>
+              <Text style={styles.throwCount}>
+                Throws: {throwsThisTurn}<Text style={styles.throwTotal}>/3</Text>
+              </Text>
+            </View>
+          </View>
+        </View>
         
-        <View style={styles.messageContainer}>
-          <Text style={styles.gameMessage}>{gameMessage}</Text>
-          <View style={styles.throwInfo}>
-            <TouchableOpacity 
-              style={[
-                styles.undoButton,
-                // Only disable if there's no history to undo
-                !gameState.hasHistory && styles.undoButtonDisabled
-              ]}
-              onPress={onUndo}
-              disabled={!gameState.hasHistory}
-            >
-              <Text style={styles.undoButtonText}>↩ Undo</Text>
-            </TouchableOpacity>
-            <Text style={styles.throwCount}>
-              Throws: {throwsThisTurn}<Text style={styles.throwTotal}>/3</Text>
-            </Text>
+        <View style={[
+          styles.contentContainer,
+          orientation === 'landscape' && styles.landscapeContent
+        ]}>
+          <View style={[styles.gameInfo, theme.elevation.small]}>
+            {renderPlayerInfo()}
+          </View>
+
+          {error && (
+            <View style={[styles.errorContainer, theme.elevation.small]}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+          
+          <View style={[styles.dartboardContainer, theme.elevation.medium]}>
+            <Dartboard 
+              onThrow={handleThrow} 
+              lastHit={lastHit} 
+              targetNumbers={targetNumbers}
+            />
           </View>
         </View>
       </View>
-      
-      <View style={[styles.gameInfo, theme.elevation.small]}>
-        {renderPlayerInfo()}
-      </View>
-
-      {error && (
-        <View style={[styles.errorContainer, theme.elevation.small]}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
-      
-      {(Platform.OS === 'web' || !connected) && (
-        <View style={[styles.dartboardContainer, theme.elevation.medium]}>
-          <Dartboard 
-            onThrow={handleThrow} 
-            lastHit={lastHit} 
-            targetNumbers={targetNumbers}
-          />
-        </View>
-      )}
     </View>
   );
 }
@@ -68,30 +77,37 @@ export default function GameScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: theme.spacing.lg,
     backgroundColor: theme.colors.background,
+  },
+  scrollContainer: {
+    flex: 1,
+    padding: theme.spacing.lg,
+  },
+  landscapeContainer: {
+    flexDirection: 'column',
+    padding: theme.spacing.md,
   },
   header: {
     backgroundColor: theme.colors.surface,
-    padding: theme.spacing.lg,
+    padding: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: '700',
     color: theme.colors.text.primary,
     textAlign: 'center',
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
   },
   messageContainer: {
     backgroundColor: theme.colors.primary,
-    padding: theme.spacing.sm,
+    padding: theme.spacing.xs,
     borderRadius: theme.borderRadius.md,
     position: 'relative',
   },
   gameMessage: {
-    fontSize: 16,
+    fontSize: 14,
     color: theme.colors.text.primary,
     textAlign: 'center',
     fontWeight: '500',
@@ -106,11 +122,24 @@ const styles = StyleSheet.create({
   throwTotal: {
     opacity: 0.6,
   },
+  contentContainer: {
+    flex: 1,
+    minHeight: 0,
+    gap: theme.spacing.md,
+  },
+  landscapeContent: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    flex: 1,
+    minHeight: 0,
+  },
   gameInfo: {
     backgroundColor: theme.colors.surface,
-    padding: theme.spacing.lg,
+    padding: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
-    marginBottom: theme.spacing.lg,
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
   },
   errorContainer: {
     backgroundColor: theme.colors.accent,
@@ -124,10 +153,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   dartboardContainer: {
-    alignItems: 'center',
     backgroundColor: theme.colors.surface,
-    padding: theme.spacing.lg,
+    padding: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
+    flex: 2,
+    minHeight: 0,
+    aspectRatio: 1,
   },
   throwInfo: {
     flexDirection: 'row',

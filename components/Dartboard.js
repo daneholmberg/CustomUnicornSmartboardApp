@@ -1,20 +1,17 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path, Circle, Text } from 'react-native-svg';
 import { useDartboardHighlight } from '../hooks/useDartboardHighlight';
 
 const NUMBERS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
-const BOARDSIZE = Math.min(Dimensions.get('window').width - 40, 400);
-const CENTER = BOARDSIZE / 2;
-const DOUBLE_RING_WIDTH = BOARDSIZE * 0.05;
-const TRIPLE_RING_WIDTH = BOARDSIZE * 0.05;
-const OUTER_RADIUS = BOARDSIZE / 2;
-const DOUBLE_RADIUS = OUTER_RADIUS - DOUBLE_RING_WIDTH;
-const TRIPLE_RADIUS = OUTER_RADIUS * 0.6;
-const BULL_OUTER_RADIUS = OUTER_RADIUS * 0.16;
-const BULL_INNER_RADIUS = OUTER_RADIUS * 0.08;
-const SEGMENT_ANGLE = 360 / NUMBERS.length;
-const ROTATION_OFFSET = -9;
+
+const calculateBoardSize = (containerWidth, containerHeight) => {
+  // Leave some padding around the board
+  const maxWidth = containerWidth * 0.9;
+  const maxHeight = containerHeight * 0.9;
+  // Use the smaller dimension to ensure the board fits
+  return Math.min(maxWidth, maxHeight, 400);
+};
 
 function usePrevious(value) {
   const ref = useRef();
@@ -68,6 +65,8 @@ function getSegmentFill(number, multiplier, highlightedSection, expectedTarget, 
 }
 
 export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
+  const [boardSize, setBoardSize] = useState(300); // Default size
+  const containerRef = useRef(null);
   const highlightedSection = useDartboardHighlight(lastHit);
   // Instead of relying on usePrevious (which fails if the parent mutates targetNumbers in place),
   // capture the expected target at the moment of the hit in local state.
@@ -79,6 +78,27 @@ export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
   }, [lastHit, targetNumbers]);
   const expectedTarget = savedExpectedTarget;
   
+  const handleLayout = () => {
+    if (containerRef.current) {
+      containerRef.current.measure((x, y, width, height) => {
+        const newSize = calculateBoardSize(width, height);
+        setBoardSize(newSize);
+      });
+    }
+  };
+
+  // Update constants based on dynamic board size
+  const CENTER = boardSize / 2;
+  const DOUBLE_RING_WIDTH = boardSize * 0.05;
+  const TRIPLE_RING_WIDTH = boardSize * 0.05;
+  const OUTER_RADIUS = boardSize / 2;
+  const DOUBLE_RADIUS = OUTER_RADIUS - DOUBLE_RING_WIDTH;
+  const TRIPLE_RADIUS = OUTER_RADIUS * 0.6;
+  const BULL_OUTER_RADIUS = OUTER_RADIUS * 0.16;
+  const BULL_INNER_RADIUS = OUTER_RADIUS * 0.08;
+  const SEGMENT_ANGLE = 360 / NUMBERS.length;
+  const ROTATION_OFFSET = -9;
+
   const createSegmentPath = (startAngle, endAngle, innerRadius, outerRadius) => {
     const startRadians = (startAngle + ROTATION_OFFSET - 90) * Math.PI / 180;
     const endRadians = (endAngle + ROTATION_OFFSET - 90) * Math.PI / 180;
@@ -154,7 +174,7 @@ export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
           x={CENTER + (OUTER_RADIUS * 0.85) * Math.cos((midAngle + ROTATION_OFFSET - 90) * Math.PI / 180)}
           y={CENTER + (OUTER_RADIUS * 0.85) * Math.sin((midAngle + ROTATION_OFFSET - 90) * Math.PI / 180)}
           fill={textColor}
-          fontSize={BOARDSIZE * 0.04}
+          fontSize={boardSize * 0.04}
           textAnchor="middle"
           alignmentBaseline="middle"
         >
@@ -165,8 +185,12 @@ export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Svg width={BOARDSIZE} height={BOARDSIZE}>
+    <View 
+      ref={containerRef} 
+      onLayout={handleLayout}
+      style={styles.container}
+    >
+      <Svg width={boardSize} height={boardSize}>
         {/* Background circle */}
         <Circle cx={CENTER} cy={CENTER} r={OUTER_RADIUS} fill="#235c3e" />
         
@@ -210,8 +234,10 @@ export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    width: '100%',
+    height: '100%',
   },
 }); 
