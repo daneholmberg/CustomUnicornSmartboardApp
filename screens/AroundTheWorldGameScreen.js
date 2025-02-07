@@ -4,6 +4,7 @@ import { useGameState } from '../hooks/useGameState';
 import GameScreen from '../components/GameScreen';
 import { PlayerCard } from '../components/PlayerCard';
 import { AroundTheWorldStats } from '../components/AroundTheWorldStats';
+import { AroundTheWorldDartboard } from '../components/game-specific/AroundTheWorldDartboard';
 import { theme } from '../theme';
 import { AROUND_THE_WORLD_TARGETS } from '../constants/gameConstants';
 import { useAutoScroll } from '../hooks/useAutoScroll';
@@ -13,6 +14,9 @@ export default function AroundTheWorldGameScreen({ gameConfig, onReset, onRestar
   const scrollViewRef = useRef(null);
   
   useAutoScroll(scrollViewRef, gameState.currentPlayerIndex, gameState.players.length);
+  
+  const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+  const currentTarget = AROUND_THE_WORLD_TARGETS[currentPlayer.targetIndex];
   
   const renderPlayerInfo = () => (
     <View style={styles.container}>
@@ -44,10 +48,16 @@ export default function AroundTheWorldGameScreen({ gameConfig, onReset, onRestar
     <GameScreen
       title="Around the World"
       gameState={gameState}
+      DartboardComponent={() => (
+        <AroundTheWorldDartboard
+          onThrow={gameState.handleThrow}
+          lastHit={gameState.lastHit}
+          currentTarget={currentTarget}
+        />
+      )}
       renderPlayerInfo={renderPlayerInfo}
       connected={gameState.connected}
       error={gameState.error}
-      handleThrow={gameState.handleThrow}
       onUndo={gameState.handleUndo}
       onReset={onReset}
       onRestart={onRestart}

@@ -7,6 +7,7 @@ import { useOrientation } from '../hooks/useOrientation';
 export default function GameScreen({ 
   title,
   gameState,
+  DartboardComponent,
   renderPlayerInfo,
   connected,
   error,
@@ -81,11 +82,7 @@ export default function GameScreen({
           )}
           
           <View style={[styles.dartboardContainer, theme.elevation.medium]}>
-            <Dartboard 
-              onThrow={handleThrow} 
-              lastHit={lastHit} 
-              targetNumbers={targetNumbers}
-            />
+            <DartboardComponent />
           </View>
         </View>
       </View>

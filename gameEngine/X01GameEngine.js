@@ -80,14 +80,42 @@ export class X01GameEngine extends BaseGameEngine {
     this.turnManager.incrementThrows();
   }
 
+  calculateWinningTargets(score) {
+    const targets = new Set();
+    
+    // Check all possible doubles (must finish on a double)
+    if (score <= 40 && score % 2 === 0) {
+      targets.add(score / 2); // The required double
+    }
+    
+    // Check all possible triples
+    if (score <= 60) {
+      const possibleTriple = score / 3;
+      if (Number.isInteger(possibleTriple) && possibleTriple <= 20) {
+        targets.add(possibleTriple);
+      }
+    }
+    
+    return Array.from(targets);
+  }
+
   getGameState() {
     const state = super.getGameState();
     const turnState = this.turnManager.getState();
+    const currentPlayer = this.turnManager.getCurrentPlayer();
+    
+    // Calculate winning targets if score is 60 or less
+    const winningTargets = currentPlayer.score <= 60 ? 
+      this.calculateWinningTargets(currentPlayer.score) : 
+      [];
+
     return {
       ...state,
       ...turnState,
       selectedScore: this.selectedScore,
-      gameType: 'X01',  // It's also good practice to identify the game type
+      gameType: 'X01',
+      winningTargets,  // Add winning targets to game state
+      requiredMultiplier: currentPlayer.score <= 40 && currentPlayer.score % 2 === 0 ? 2 : 3,
     };
   }
 

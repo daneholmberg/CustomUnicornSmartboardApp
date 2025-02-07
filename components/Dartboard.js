@@ -13,73 +13,45 @@ const calculateBoardSize = (containerWidth, containerHeight) => {
   return Math.min(maxWidth, maxHeight);
 };
 
-function usePrevious(value) {
-  const ref = useRef();
-  useEffect(() => {
-    ref.current = value;
-  }, [value]);
-  return ref.current;
-}
-
-function getSegmentFill(number, multiplier, highlightedSection, expectedTarget, targetNumbers, defaultColor, isEvenSegment) {
-  // Debug logging
-  if (highlightedSection && highlightedSection.score === number && highlightedSection.multiplier === multiplier) {
-    // console.log('Hit detected:', {
-    //   number,
-    //   multiplier,
-    //   highlightedScore: highlightedSection.score,
-    //   targetNumbers,
-    //   isTarget: highlightedSection.score === targetNumbers?.[0]
-    // });
-  }
-
+function getSegmentFill(number, multiplier, highlightedSection, defaultColor, isEvenSegment, getHighlightInfo, targetNumbers) {
   // First check if this was just hit
-  if (highlightedSection && highlightedSection.score === number && highlightedSection.multiplier === multiplier) {
-    if (targetNumbers?.length) {
-      const wasCorrectHit = highlightedSection.score === expectedTarget;
-      // console.log('Checking hit:', { wasCorrectHit, score: highlightedSection.score, target: expectedTarget });
-      
-      if (wasCorrectHit) {
-        return '#ffff00';
-      }
-      return '#cccccc';
-    }
+  if (highlightedSection?.score === number && highlightedSection?.multiplier === multiplier) {
     return '#ffff00';
   }
 
-  // Check if this is a target number
+  // Check game-specific highlighting
+  if (getHighlightInfo) {
+    const { isHighlighted, color } = getHighlightInfo(number, multiplier);
+    if (isHighlighted) {
+      return color;
+    }
+  }
+
+  // Check if this is a target number (for games like Around the World)
   if (targetNumbers?.includes(number)) {
-    if (multiplier === 3) {
-      return '#ffb8b8';
-    }
-    if (multiplier === 2) {
-      return '#88ff88';
-    }
+    if (multiplier === 3) return '#ffb8b8';
+    if (multiplier === 2) return '#88ff88';
     return '#b8f7b8';
   }
   
   // Handle alternating colors for double and triple rings
   if (multiplier === 2 || multiplier === 3) {
-    return isEvenSegment ? '#004400' : '#8b0000'; // Darker green and deeper red to match Narwhal board
+    return isEvenSegment ? '#004400' : '#8b0000';
   }
   
   // For main segments (multiplier === 1)
-  return defaultColor === 'white' ? '#f4e4bc' : '#000000'; // Cream color for white sections, black for black sections
+  return defaultColor === 'white' ? '#f4e4bc' : '#000000';
 }
 
-export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
-  const [boardSize, setBoardSize] = useState(300); // Default size
+export default function Dartboard({ 
+  onThrow, 
+  lastHit,
+  getHighlightInfo,
+  targetNumbers = [],
+}) {
+  const [boardSize, setBoardSize] = useState(300);
   const containerRef = useRef(null);
   const highlightedSection = useDartboardHighlight(lastHit);
-  // Instead of relying on usePrevious (which fails if the parent mutates targetNumbers in place),
-  // capture the expected target at the moment of the hit in local state.
-  const [savedExpectedTarget, setSavedExpectedTarget] = React.useState(targetNumbers?.[0]);
-  React.useEffect(() => {
-    if (lastHit) {
-      setSavedExpectedTarget(targetNumbers?.[0]);
-    }
-  }, [lastHit, targetNumbers]);
-  const expectedTarget = savedExpectedTarget;
   
   const handleLayout = () => {
     if (containerRef.current) {
@@ -135,21 +107,45 @@ export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
           {/* Main segment */}
           <Path
             d={createSegmentPath(startAngle, endAngle, BULL_OUTER_RADIUS, DOUBLE_RADIUS)}
-            fill={getSegmentFill(number, 1, highlightedSection, expectedTarget, targetNumbers, isEven ? 'white' : 'black')}
+            fill={getSegmentFill(
+              number, 
+              1, 
+              highlightedSection, 
+              isEven ? 'white' : 'black',
+              isEven,
+              getHighlightInfo,
+              targetNumbers
+            )}
             onPress={() => onThrow({ score: number, multiplier: 1 })}
           />
           
           {/* Double ring */}
           <Path
             d={createSegmentPath(startAngle, endAngle, DOUBLE_RADIUS, OUTER_RADIUS)}
-            fill={getSegmentFill(number, 2, highlightedSection, expectedTarget, targetNumbers, "#44ff44", isEven)}
+            fill={getSegmentFill(
+              number, 
+              2, 
+              highlightedSection, 
+              "#44ff44",
+              isEven,
+              getHighlightInfo,
+              targetNumbers
+            )}
             onPress={() => onThrow({ score: number, multiplier: 2 })}
           />
           
           {/* Triple ring */}
           <Path
             d={createSegmentPath(startAngle, endAngle, TRIPLE_RADIUS, TRIPLE_RADIUS + TRIPLE_RING_WIDTH)}
-            fill={getSegmentFill(number, 3, highlightedSection, expectedTarget, targetNumbers, "#ff4444", isEven)}
+            fill={getSegmentFill(
+              number, 
+              3, 
+              highlightedSection, 
+              "#ff4444",
+              isEven,
+              getHighlightInfo,
+              targetNumbers
+            )}
             onPress={() => onThrow({ score: number, multiplier: 3 })}
           />
         </React.Fragment>
@@ -208,7 +204,7 @@ export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
           fill={
             targetNumbers?.includes(25) ? '#b8f7b8' :
             (highlightedSection?.score === 25 && highlightedSection?.multiplier === 1) ? 
-              (highlightedSection?.score === expectedTarget ? '#ffff00' : '#cccccc') :
+              '#ffff00' :
             "#004400"  // Darker green to match the board
           }
           onPress={() => onThrow({ score: 25, multiplier: 1 })}
@@ -222,7 +218,7 @@ export default function Dartboard({ onThrow, lastHit, targetNumbers }) {
           fill={
             targetNumbers?.includes(25) ? '#b8f7b8' :
             (highlightedSection?.score === 25 && highlightedSection?.multiplier === 2) ?
-              (highlightedSection?.score === expectedTarget ? '#ffff00' : '#cccccc') :
+              '#ffff00' :
             "#8b0000"  // Deeper red to match the board
           }
           onPress={() => onThrow({ score: 25, multiplier: 2 })}

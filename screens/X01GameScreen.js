@@ -6,6 +6,7 @@ import { PlayerCard } from '../components/PlayerCard';
 import { X01Stats } from '../components/X01Stats';
 import { theme } from '../theme';
 import { useAutoScroll } from '../hooks/useAutoScroll';
+import { X01Dartboard } from '../components/game-specific/X01Dartboard';
 
 export default function X01GameScreen({ gameConfig, onReset, onRestart }) {
   const gameState = useGameState(gameConfig);
@@ -42,10 +43,16 @@ export default function X01GameScreen({ gameConfig, onReset, onRestart }) {
     <GameScreen
       title={`X01 (${gameState.selectedScore})`}
       gameState={gameState}
+      DartboardComponent={() => (
+        <X01Dartboard
+          onThrow={gameState.handleThrow}
+          lastHit={gameState.lastHit}
+          currentScore={gameState.players[gameState.currentPlayerIndex].score}
+        />
+      )}
       renderPlayerInfo={renderPlayerInfo}
       connected={gameState.connected}
       error={gameState.error}
-      handleThrow={gameState.handleThrow}
       onUndo={gameState.handleUndo}
       onReset={onReset}
       onRestart={onRestart}
