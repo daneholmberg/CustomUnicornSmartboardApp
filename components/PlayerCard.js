@@ -16,7 +16,7 @@ export const PlayerCard = ({
     switch (count) {
       case 2:
         return {
-          containerHeight: 60, // Reduced from 90
+          containerHeight: 60,
           fontSize: 14,
           scoreSize: 24,
           padding: theme.spacing.sm,
@@ -24,7 +24,7 @@ export const PlayerCard = ({
         };
       case 3:
         return {
-          containerHeight: 50, // Reduced from 70
+          containerHeight: 50,
           fontSize: 13,
           scoreSize: 20,
           padding: theme.spacing.xs,
@@ -33,7 +33,7 @@ export const PlayerCard = ({
       case 4:
       case 5:
         return {
-          containerHeight: 40, // Reduced from 50
+          containerHeight: 40,
           fontSize: 12,
           scoreSize: 18,
           padding: theme.spacing.xs,
@@ -41,7 +41,7 @@ export const PlayerCard = ({
         };
       default:
         return {
-          containerHeight: 35, // Reduced from 45
+          containerHeight: 35,
           fontSize: 11,
           scoreSize: 16,
           padding: theme.spacing.xs,
@@ -54,69 +54,72 @@ export const PlayerCard = ({
 
   return (
     <View style={[
-      styles.container, 
-      isActive && styles.activeContainer,
-      { 
-        height: sizes.containerHeight,
-        padding: sizes.padding,
-        gap: sizes.padding
-      }
+      styles.outerContainer,
+      isActive && styles.activeOuterContainer
     ]}>
-      <View style={styles.leftSection}>
-        <View style={[styles.header, { gap: theme.spacing.xs }]}>
-          <Text style={[styles.name, { fontSize: sizes.fontSize }]}>
-            {player.name}
-          </Text>
-          {isActive && (
-            <View style={[styles.activeBadge, { padding: 2 }]}>
-              <Text style={[styles.activeBadgeText, { fontSize: sizes.statsSize }]}>
-                Active
-              </Text>
+      <View style={[
+        styles.container, 
+        { 
+          height: sizes.containerHeight,
+          padding: sizes.padding,
+          gap: sizes.padding
+        }
+      ]}>
+        <View style={styles.leftSection}>
+          <View style={[styles.header, { gap: theme.spacing.xs }]}>
+            <Text style={[styles.name, { fontSize: sizes.fontSize }]}>
+              {player.name}
+            </Text>
+            {isActive && (
+              <View style={[styles.activeBadge, { padding: 2 }]}>
+                <Text style={[styles.activeBadgeText, { fontSize: sizes.statsSize }]}>
+                  Active
+                </Text>
+              </View>
+            )}
+          </View>
+          {renderStats && (
+            <View style={[styles.statsContainer, { marginTop: 1 }]}>
+              {React.cloneElement(renderStats(player), { 
+                textSize: sizes.statsSize 
+              })}
             </View>
           )}
         </View>
-        {renderStats && (
-          <View style={[styles.statsContainer, { marginTop: 1 }]}>
-            {React.cloneElement(renderStats(player), { 
-              textSize: sizes.statsSize 
-            })}
-          </View>
-        )}
-      </View>
-      
-      <View style={styles.scoreSection}>
-        {mainScoreLabel && (
-          <Text style={[styles.scoreLabel, { fontSize: sizes.statsSize }]}>
-            {mainScoreLabel}
+        
+        <View style={styles.scoreSection}>
+          {mainScoreLabel && (
+            <Text style={[styles.scoreLabel, { fontSize: sizes.statsSize }]}>
+              {mainScoreLabel}
+            </Text>
+          )}
+          <Text style={[styles.score, { fontSize: sizes.scoreSize }]}>
+            {mainScore}
           </Text>
-        )}
-        <Text style={[styles.score, { fontSize: sizes.scoreSize }]}>
-          {mainScore}
-        </Text>
-      </View>
+        </View>
 
-      {player.place && <PlayerMedal place={player.place} />}
+        {player.place && <PlayerMedal place={player.place} />}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  outerContainer: {
+    borderRadius: theme.borderRadius.md,
+    padding: 2, // This creates space for the active border
+  },
+  activeOuterContainer: {
+    backgroundColor: theme.colors.primary,
+    ...theme.elevation.medium,
+  },
   container: {
     backgroundColor: theme.colors.surface2,
     borderRadius: theme.borderRadius.md,
-    marginVertical: theme.spacing.xs,
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    ...theme.elevation.small,
-  },
-  activeContainer: {
-    backgroundColor: theme.colors.surfaceAccent,
-    borderColor: theme.colors.primary,
-    borderWidth: 2,
-    transform: [{ scale: 1.02 }],
-    ...theme.elevation.medium,
   },
   leftSection: {
     flex: 1,
@@ -144,7 +147,7 @@ const styles = StyleSheet.create({
   },
   scoreSection: {
     alignItems: 'flex-end',
-    minWidth: 60, // Reduce from 80
+    minWidth: 60,
   },
   scoreLabel: {
     fontSize: 10,

@@ -6,9 +6,9 @@ import { useDartboardHighlight } from '../hooks/useDartboardHighlight';
 const NUMBERS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 
 const calculateBoardSize = (containerWidth, containerHeight) => {
-  // Leave some padding around the board
-  const maxWidth = containerWidth * 0.95;
-  const maxHeight = containerHeight * 0.95;
+  // Leave a tiny bit of space to prevent clipping
+  const maxWidth = containerWidth * 0.99;
+  const maxHeight = containerHeight * 0.99;
   // Use the smaller dimension to ensure the board fits
   return Math.min(maxWidth, maxHeight);
 };
@@ -239,6 +239,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     height: '100%',
-    minHeight: 0, // Important for flex behavior
+    minHeight: 0,
+    aspectRatio: 1,
+    padding: 0,
+    margin: 0,
   },
 }); 
