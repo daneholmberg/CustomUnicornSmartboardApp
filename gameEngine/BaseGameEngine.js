@@ -18,15 +18,20 @@ export class BaseGameEngine {
     this.turnManager.nextPlayer();
   }
 
-  undoLastThrow() {
+  // Common, shared logic for undoing a throw
+  _undoGenericThrow() {
     const lastThrow = this.throwHistory.pop();
-    if (!lastThrow) return false;
-    
+    if (!lastThrow) {
+      return null;
+    }
     this.lastHit = this.hitHistory.pop() || null;
-    
     this.turnManager.undoThrow();
-    
-    return true;
+    return lastThrow;
+  }
+
+  // Base undoLastThrow now just calls our helper
+  undoLastThrow() {
+    return this._undoGenericThrow() !== null;
   }
 
   handleThrow(dart) {

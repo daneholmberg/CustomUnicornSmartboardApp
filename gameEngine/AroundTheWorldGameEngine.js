@@ -41,48 +41,42 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
   }
 
   undoLastThrow() {
-    const lastThrow = this.throwHistory.pop();
+    const lastThrow = this._undoGenericThrow();
     if (!lastThrow) return false;
-    
-    // Get the player who made the throw we're undoing
+
     const player = this.turnManager.getState().players[lastThrow.playerIndex];
-    
-    // Update stats
+    // Pull out the old targetIndex from meta
+    const { targetIndex } = lastThrow.meta || {};
+
     player.stats.attempts--;
-    
-    // Check if this was a hit against the target at the time of the throw
-    const targetAtTimeOfThrow = AROUND_THE_WORLD_TARGETS[lastThrow.targetIndex];
+
+    // If it was a hit on that target, revert
+    const targetAtTimeOfThrow = AROUND_THE_WORLD_TARGETS[targetIndex];
     if (lastThrow.dart.score === targetAtTimeOfThrow) {
       player.stats.hits--;
-      // Revert the target index to what it was at the time of the throw
-      player.targetIndex = lastThrow.targetIndex;
+      player.targetIndex = targetIndex;
     }
-    
-    // Recalculate hit rate
+
     player.stats.hitRate = player.stats.attempts > 0
       ? Math.round((player.stats.hits / player.stats.attempts) * 100)
       : 0;
-    
-    // Restore previous hit
-    this.lastHit = this.hitHistory.pop() || null;
-    
-    this.turnManager.undoThrow();
+
     this.gameMessage = `Aiming for: ${AROUND_THE_WORLD_TARGETS[player.targetIndex]}`;
-    
     return true;
   }
 
   handleThrow(dart) {
-    // Store the current target index before the throw
     const currentPlayer = this.turnManager.getCurrentPlayer();
     const currentTargetIndex = currentPlayer.targetIndex;
-    
-    // Add to history with the target index
+
+    // Put the old targetIndex in meta to unify shape
     this.throwHistory.push({
       dart,
       playerIndex: this.turnManager.currentPlayerIndex,
       throwsThisTurn: this.turnManager.throwsThisTurn,
-      targetIndex: currentTargetIndex
+      meta: {
+        targetIndex: currentTargetIndex,
+      },
     });
     
     if (!dart || typeof dart.score !== 'number') {

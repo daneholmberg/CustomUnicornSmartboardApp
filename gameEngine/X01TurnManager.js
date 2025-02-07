@@ -27,15 +27,12 @@ export class X01TurnManager extends TurnManager {
     };
   }
 
+  // We now wrap super.undoThrow() but also reset currentTurnScore if we changed players
   undoThrow() {
-    if (this.throwsThisTurn > 0) {
-      this.throwsThisTurn--;
-    } else if (this.throwsThisTurn === 0) {
-      // Go back to previous player's last throw
-      const prevIndex = (this.currentPlayerIndex - 1 + this.players.length) % this.players.length;
-      this.currentPlayerIndex = prevIndex;
-      this.throwsThisTurn = GAME_CONSTANTS.MAX_DARTS_PER_TURN - 1;
-      // Reset current turn score when going back to previous player
+    const didHaveZeroThrows = (this.throwsThisTurn === 0);
+    super.undoThrow(); // calls TurnManager's logic
+    if (didHaveZeroThrows) {
+      // If we just moved to the previous player, reset currentTurnScore
       this.currentTurnScore = 0;
     }
   }

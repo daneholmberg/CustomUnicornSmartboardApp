@@ -13,9 +13,8 @@ export function useGameState(gameConfig) {
   };
 
   const handleUndo = () => {
-    if (gameEngine.undoLastThrow()) {
-      setGameState(gameEngine.getGameState());
-    }
+    gameEngine.undoLastThrow();
+    setGameState(gameEngine.getGameState());
   };
 
   useEffect(() => {

@@ -28,20 +28,24 @@ export class X01GameEngine extends BaseGameEngine {
   }
 
   handleThrow(dart) {
-    // Store state before the throw
     const currentPlayer = this.turnManager.getCurrentPlayer();
     const currentTurnScore = this.turnManager.currentTurnScore;
-    
-    // Add to history with current state
+    const isLastThrowOfTurn = this.turnManager.willBeEndOfTurn();
+
+    // Store the current state before the throw
     this.throwHistory.push({
       dart,
       playerIndex: this.turnManager.currentPlayerIndex,
       throwsThisTurn: this.turnManager.throwsThisTurn,
-      turnScore: currentTurnScore,
-      playerScore: currentPlayer.score
+      meta: {
+        turnScore: currentTurnScore,
+        playerScore: currentPlayer.score,
+        stats: { ...currentPlayer.stats },
+        wasLastThrowOfTurn: isLastThrowOfTurn
+      },
     });
-    
-    // Store current hit and set new one
+
+    // Save old hit, set new one
     if (this.lastHit) {
       this.hitHistory.push(this.lastHit);
     }
@@ -66,7 +70,8 @@ export class X01GameEngine extends BaseGameEngine {
 
     this.gameMessage = `${currentPlayer.name} scored ${throwValue}. Score this round: ${this.turnManager.currentTurnScore}`;
     
-    if (this.turnManager.willBeEndOfTurn()) {
+    // Update stats when completing a turn
+    if (isLastThrowOfTurn) {
       currentPlayer.stats.totalScore += this.turnManager.currentTurnScore;
       currentPlayer.stats.rounds += 1;
       currentPlayer.stats.averagePerRound = Math.round(currentPlayer.stats.totalScore / currentPlayer.stats.rounds);
@@ -87,33 +92,28 @@ export class X01GameEngine extends BaseGameEngine {
   }
 
   undoLastThrow() {
-    const lastThrow = this.throwHistory.pop();
+    const lastThrow = this._undoGenericThrow();
     if (!lastThrow) return false;
-    
-    // Get the player who made the throw we're undoing
+
     const player = this.turnManager.getState().players[lastThrow.playerIndex];
-    
+    const { turnScore, playerScore, stats, wasLastThrowOfTurn } = lastThrow.meta || {};
+
     // Restore player's score
-    player.score = lastThrow.playerScore;
-    
-    // Restore turn score
-    this.turnManager.currentTurnScore = lastThrow.turnScore;
-    
-    // Update stats if we're undoing a complete round
-    if (this.turnManager.throwsThisTurn === 0) {
-      player.stats.totalScore -= this.turnManager.currentTurnScore;
-      player.stats.rounds--;
-      player.stats.averagePerRound = player.stats.rounds > 0 
-        ? Math.round(player.stats.totalScore / player.stats.rounds)
-        : 0;
+    if (typeof playerScore === 'number') {
+      player.score = playerScore;
     }
-    
-    // Restore previous hit
-    this.lastHit = this.hitHistory.pop() || null;
-    
-    this.turnManager.undoThrow();
+
+    // Restore turn score
+    if (typeof turnScore === 'number') {
+      this.turnManager.currentTurnScore = turnScore;
+    }
+
+    // If we're undoing what was the last throw of a turn, restore previous stats
+    if (wasLastThrowOfTurn && stats) {
+      player.stats = { ...stats };
+    }
+
     this.gameMessage = `Round score: ${this.turnManager.currentTurnScore}`;
-    
     return true;
   }
 }
