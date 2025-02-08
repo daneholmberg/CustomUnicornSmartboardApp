@@ -82,6 +82,7 @@ export class X01GameEngine extends BaseGameEngine {
       this.hitHistory.push(this.lastHit);
     }
     this.lastHit = dart;
+    this.turnManager.addDart(dart);
     
     const throwValue = this.calculateThrowValue(dart);
     

@@ -15,6 +15,9 @@ export class TurnManager {
     this.players = players;
     this.currentPlayerIndex = 0;
     this.throwsThisTurn = 0;
+    this.currentTurnDarts = [];
+    this.lastTurnDarts = [];
+    this.lastTurnTimestamp = null;
   }
 
   /**
@@ -38,8 +41,13 @@ export class TurnManager {
    * Advances to the next player and resets throw count
    */
   nextPlayer() {
+    if (this.currentTurnDarts.length > 0) {
+      this.lastTurnDarts = [...this.currentTurnDarts];
+      this.lastTurnTimestamp = Date.now();
+    }
     this.currentPlayerIndex = this.findNextActivePlayer();
     this.throwsThisTurn = 0;
+    this.currentTurnDarts = [];
   }
 
   /**
@@ -85,6 +93,9 @@ export class TurnManager {
       currentPlayerIndex: this.currentPlayerIndex,
       throwsThisTurn: this.throwsThisTurn,
       players: this.players,
+      currentTurnDarts: this.currentTurnDarts,
+      lastTurnDarts: this.lastTurnDarts,
+      lastTurnTimestamp: this.lastTurnTimestamp,
     };
   }
 
@@ -102,10 +113,22 @@ export class TurnManager {
   undoThrow() {
     if (this.throwsThisTurn > 0) {
       this.throwsThisTurn--;
+      this.currentTurnDarts.pop();
     } else if (this.throwsThisTurn === 0) {
       const prevIndex = (this.currentPlayerIndex - 1 + this.players.length) % this.players.length;
       this.currentPlayerIndex = prevIndex;
       this.throwsThisTurn = GAME_CONSTANTS.MAX_DARTS_PER_TURN - 1;
+      this.currentTurnDarts = [...this.lastTurnDarts];
+      this.lastTurnDarts = [];
+      this.lastTurnTimestamp = null;
+    }
+  }
+
+  addDart(dart) {
+    this.currentTurnDarts.push(dart);
+    if (this.currentTurnDarts.length === 1 && this.throwsThisTurn === 0) {
+      this.lastTurnDarts = [];
+      this.lastTurnTimestamp = null;
     }
   }
 } 

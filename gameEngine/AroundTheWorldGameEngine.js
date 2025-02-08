@@ -102,6 +102,7 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
       this.hitHistory.push(this.lastHit);
     }
     this.lastHit = dart;
+    this.turnManager.addDart(dart);
     
     const targetNumber = AROUND_THE_WORLD_TARGETS[currentPlayer.targetIndex];
     

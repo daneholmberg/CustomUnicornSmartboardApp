@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, Platform, TouchableOpacity } from 'react-native
 import Dartboard from './Dartboard';
 import { theme } from '../theme';
 import { useOrientation } from '../hooks/useOrientation';
+import { DartDisplay } from './game-specific/DartDisplay';
 
 export default function GameScreen({ 
   title,
@@ -72,6 +73,11 @@ export default function GameScreen({
           orientation === 'landscape' && styles.landscapeContent
         ]}>
           <View style={[styles.gameInfo, theme.elevation.small]}>
+            <DartDisplay 
+              darts={gameState.currentTurnDarts}
+              lastTurnDarts={gameState.lastTurnDarts}
+              lastTurnTimestamp={gameState.lastTurnTimestamp}
+            />
             {renderPlayerInfo()}
           </View>
 
