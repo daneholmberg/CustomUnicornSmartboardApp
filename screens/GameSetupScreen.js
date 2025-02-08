@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Keyboard } from 'react-native';
 import { GAME_MODES } from '../constants/gameModes';
 import { GAME_CONFIGS } from '../constants/gameConfigs';
 import { useOrientation } from '../hooks/useOrientation';
 import { theme } from '../theme';
+import { Ionicons } from '@expo/vector-icons';
 
 /**
  * State Choice: local
@@ -13,8 +14,9 @@ import { theme } from '../theme';
  * 
  * @param {Object} props
  * @param {Function} props.onStartGame - Callback fired when game setup is complete
+ * @param {Function} props.onBack - Callback to navigate back to home screen
  */
-export default function GameSetupScreen({ onStartGame }) {
+export default function GameSetupScreen({ onStartGame, onBack }) {
   const orientation = useOrientation();
   const [selectedGameMode, setSelectedGameMode] = useState(null);
   const [configValues, setConfigValues] = useState({});
@@ -23,6 +25,17 @@ export default function GameSetupScreen({ onStartGame }) {
   const inputRef = useRef(null);
 
   const selectedConfig = selectedGameMode ? GAME_CONFIGS[selectedGameMode] : null;
+
+  // Set default values when game mode is selected
+  useEffect(() => {
+    if (selectedGameMode === GAME_MODES.HALVE_IT) {
+      setConfigValues({
+        roundCount: 9,
+        penaltyMode: 'half',
+        bullseyeMode: 'outer'
+      });
+    }
+  }, [selectedGameMode]);
 
   const handleAddPlayer = () => {
     if (playerNameInput.trim() && selectedGameMode) {
@@ -45,6 +58,16 @@ export default function GameSetupScreen({ onStartGame }) {
     handleAddPlayer();
   };
 
+  const handleStartGame = () => {
+    onStartGame({ 
+      mode: selectedGameMode,
+      players,
+      roundCount: configValues.roundCount,
+      penaltyMode: configValues.penaltyMode,
+      selectedScore: configValues.selectedScore,
+    });
+  };
+
   /**
    * Renders the configuration fields for the selected game mode.
    * Supports different field types (currently 'select') and renders
@@ -60,26 +83,35 @@ export default function GameSetupScreen({ onStartGame }) {
             <View key={field.name} style={styles.fieldContainer}>
               <Text style={styles.fieldLabel}>{field.label}</Text>
               <View style={styles.optionsRow}>
-                {field.options.map((option) => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={[
-                      styles.optionButton,
-                      configValues[field.name] === option.value && styles.optionButtonSelected
-                    ]}
-                    onPress={() => setConfigValues(prev => ({
-                      ...prev,
-                      [field.name]: option.value
-                    }))}
-                  >
-                    <Text style={[
-                      styles.optionButtonText,
-                      configValues[field.name] === option.value && styles.optionButtonTextSelected
-                    ]}>
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {field.options.map((option) => {
+                  // Use default value if no value is set
+                  const isSelected = configValues[field.name] === option.value ||
+                    (!configValues[field.name] && 
+                      ((field.name === 'roundCount' && option.value === 9) ||
+                       (field.name === 'penaltyMode' && option.value === 'half'))
+                    );
+                  
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={[
+                        styles.optionButton,
+                        isSelected && styles.optionButtonSelected
+                      ]}
+                      onPress={() => setConfigValues(prev => ({
+                        ...prev,
+                        [field.name]: option.value
+                      }))}
+                    >
+                      <Text style={[
+                        styles.optionButtonText,
+                        isSelected && styles.optionButtonTextSelected
+                      ]}>
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
           );
@@ -129,11 +161,7 @@ export default function GameSetupScreen({ onStartGame }) {
           {players.length > 0 && (
             <TouchableOpacity 
               style={styles.startButton}
-              onPress={() => onStartGame({ 
-                mode: selectedGameMode,
-                players,
-                selectedScore: configValues.selectedScore,
-              })}
+              onPress={handleStartGame}
             >
               <Text style={styles.startButtonText}>Start Game</Text>
             </TouchableOpacity>
@@ -146,6 +174,20 @@ export default function GameSetupScreen({ onStartGame }) {
 
   return (
     <View style={styles.container}>
+      {selectedGameMode && (
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => {
+            setSelectedGameMode(null);
+            setPlayers([]);
+            setConfigValues({});
+          }}
+        >
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text.primary} />
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={[styles.content, orientation === 'landscape' && styles.landscapeContent]}>
         <View style={[styles.section, styles.leftSection]}>
           <Text style={styles.headerText}>
@@ -185,6 +227,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: theme.spacing.lg,
+    paddingTop: theme.spacing.xl * 2,
   },
   landscapeContent: {
     flexDirection: 'row',
@@ -314,5 +357,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing.md,
+    position: 'absolute',
+    top: theme.spacing.lg,
+    left: theme.spacing.lg,
+    zIndex: 1,
+  },
+  backButtonText: {
+    color: theme.colors.text.primary,
+    fontSize: 16,
+    marginLeft: theme.spacing.sm,
+    fontWeight: '500',
   },
 }); 

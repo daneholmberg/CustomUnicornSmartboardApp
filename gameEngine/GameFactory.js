@@ -2,6 +2,7 @@ import { X01GameEngine } from './X01GameEngine';
 import { AroundTheWorldGameEngine } from './AroundTheWorldGameEngine';
 import { GAME_MODES } from '../constants/gameModes';
 import { GameError } from '../utils/errors';
+import { HalveItGameEngine } from './HalveItGameEngine';
 
 /**
  * Creates appropriate game engine instance based on game mode
@@ -18,6 +19,8 @@ export function createGameEngine(config) {
       return new X01GameEngine(config);
     case GAME_MODES.AROUND_THE_WORLD:
       return new AroundTheWorldGameEngine(config);
+    case GAME_MODES.HALVE_IT:
+      return new HalveItGameEngine(config);
     default:
       throw new GameConfigError(`Unsupported game mode: ${config.mode}`);
   }

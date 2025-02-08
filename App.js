@@ -6,12 +6,14 @@ import GameSetupScreen from './screens/GameSetupScreen';
 import { GAME_MODES } from './constants/gameModes';
 import X01GameScreen from './screens/X01GameScreen';
 import AroundTheWorldGameScreen from './screens/AroundTheWorldGameScreen';
+import HalveItGameScreen from './screens/HalveItGameScreen';
 import { theme } from './theme';
 import * as ScreenOrientation from 'expo-screen-orientation';
 
 const gameScreens = {
   [GAME_MODES.X01]: X01GameScreen,
   [GAME_MODES.AROUND_THE_WORLD]: AroundTheWorldGameScreen,
+  [GAME_MODES.HALVE_IT]: HalveItGameScreen,
 };
 
 export default function App() {

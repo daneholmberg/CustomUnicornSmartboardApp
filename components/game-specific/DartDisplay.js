@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { theme } from '../../theme';
 
-const TRANSITION_DURATION = 10000; // 10 seconds in milliseconds
+const TRANSITION_DURATION = 3000; // 3 seconds in milliseconds
 
 /**
  * Displays the last 3 darts thrown by the current player
