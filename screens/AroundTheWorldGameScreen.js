@@ -9,6 +9,12 @@ import { theme } from '../theme';
 import { AROUND_THE_WORLD_TARGETS } from '../constants/gameConstants';
 import { useAutoScroll } from '../hooks/useAutoScroll';
 
+/**
+ * State Choice: context
+ * Reason: Game state needs to be shared between multiple components including the 
+ * dartboard, player cards, and stats. Using context prevents prop drilling and 
+ * centralizes game logic.
+ */
 export default function AroundTheWorldGameScreen({ gameConfig, onReset, onRestart }) {
   const gameState = useGameState(gameConfig);
   const scrollViewRef = useRef(null);

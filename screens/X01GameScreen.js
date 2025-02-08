@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { StyleSheet, View, Text, ScrollView } from 'react-native';
+import { StyleSheet, View, ScrollView } from 'react-native';
 import { useGameState } from '../hooks/useGameState';
 import GameScreen from '../components/GameScreen';
 import { PlayerCard } from '../components/PlayerCard';
@@ -8,6 +8,13 @@ import { theme } from '../theme';
 import { useAutoScroll } from '../hooks/useAutoScroll';
 import { X01Dartboard } from '../components/game-specific/X01Dartboard';
 
+
+/**
+ * State Choice: context
+ * Reason: Game state needs to be shared between multiple components including the 
+ * dartboard, player cards, and stats. Using context prevents prop drilling and 
+ * centralizes game logic.
+ */
 export default function X01GameScreen({ gameConfig, onReset, onRestart }) {
   const gameState = useGameState(gameConfig);
   const scrollViewRef = useRef(null);

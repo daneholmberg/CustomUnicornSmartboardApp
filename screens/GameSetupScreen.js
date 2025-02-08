@@ -5,6 +5,15 @@ import { GAME_CONFIGS } from '../constants/gameConfigs';
 import { useOrientation } from '../hooks/useOrientation';
 import { theme } from '../theme';
 
+/**
+ * State Choice: local
+ * Reason: Setup screen state (selected game mode, player names, config values) is only 
+ * needed within this screen and doesn't need to persist or be shared. Once game starts, 
+ * this state is transformed into initial game state.
+ * 
+ * @param {Object} props
+ * @param {Function} props.onStartGame - Callback fired when game setup is complete
+ */
 export default function GameSetupScreen({ onStartGame }) {
   const orientation = useOrientation();
   const [selectedGameMode, setSelectedGameMode] = useState(null);
@@ -36,6 +45,11 @@ export default function GameSetupScreen({ onStartGame }) {
     handleAddPlayer();
   };
 
+  /**
+   * Renders the configuration fields for the selected game mode.
+   * Supports different field types (currently 'select') and renders
+   * appropriate UI components based on the field configuration.
+   */
   const renderSetupFields = () => {
     if (!selectedConfig) return null;
 
@@ -75,6 +89,61 @@ export default function GameSetupScreen({ onStartGame }) {
     });
   };
 
+  /**
+   * Renders the player list section including the input field for new players,
+   * the list of added players, and the start game button when applicable.
+   */
+  const renderPlayerInfo = () => {
+    if (selectedGameMode) {
+      return (
+        <View style={[styles.section, styles.rightSection]}>
+          <Text style={styles.headerText}>Players</Text>
+          <View style={styles.playerInputContainer}>
+            <TextInput 
+              ref={inputRef}
+              style={styles.input}
+              placeholder="Enter player name"
+              placeholderTextColor={theme.colors.text.secondary}
+              value={playerNameInput}
+              onChangeText={setPlayerNameInput}
+              onSubmitEditing={handleInputSubmit}
+              returnKeyType="done"
+              blurOnSubmit={false}
+            />
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={handleAddPlayer}
+            >
+              <Text style={styles.addButtonText}>Add Player</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.playerList}>
+            {players.map((player, index) => (
+              <View key={index} style={styles.playerCard}>
+                <Text style={styles.playerText}>{player.name}</Text>
+              </View>
+            ))}
+          </ScrollView>
+          
+          {players.length > 0 && (
+            <TouchableOpacity 
+              style={styles.startButton}
+              onPress={() => onStartGame({ 
+                mode: selectedGameMode,
+                players,
+                selectedScore: configValues.selectedScore,
+              })}
+            >
+              <Text style={styles.startButtonText}>Start Game</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      );
+    }
+    return null;
+  };
+
   return (
     <View style={styles.container}>
       <View style={[styles.content, orientation === 'landscape' && styles.landscapeContent]}>
@@ -102,51 +171,7 @@ export default function GameSetupScreen({ onStartGame }) {
           )}
         </View>
 
-        {selectedGameMode && (
-          <View style={[styles.section, styles.rightSection]}>
-            <Text style={styles.headerText}>Players</Text>
-            <View style={styles.playerInputContainer}>
-              <TextInput 
-                ref={inputRef}
-                style={styles.input}
-                placeholder="Enter player name"
-                placeholderTextColor={theme.colors.text.secondary}
-                value={playerNameInput}
-                onChangeText={setPlayerNameInput}
-                onSubmitEditing={handleInputSubmit}
-                returnKeyType="done"
-                blurOnSubmit={false}
-              />
-              <TouchableOpacity 
-                style={styles.addButton}
-                onPress={handleAddPlayer}
-              >
-                <Text style={styles.addButtonText}>Add Player</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView style={styles.playerList}>
-              {players.map((player, index) => (
-                <View key={index} style={styles.playerCard}>
-                  <Text style={styles.playerText}>{player.name}</Text>
-                </View>
-              ))}
-            </ScrollView>
-            
-            {players.length > 0 && (
-              <TouchableOpacity 
-                style={styles.startButton}
-                onPress={() => onStartGame({ 
-                  mode: selectedGameMode,
-                  players,
-                  selectedScore: configValues.selectedScore,
-                })}
-              >
-                <Text style={styles.startButtonText}>Start Game</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
+        {renderPlayerInfo()}
       </View>
     </View>
   );
