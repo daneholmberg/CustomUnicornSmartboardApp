@@ -12,15 +12,19 @@ if (!Array.isArray(AROUND_THE_WORLD_TARGETS) || AROUND_THE_WORLD_TARGETS.length 
   throw new Error('AROUND_THE_WORLD_TARGETS must be a non-empty array');
 }
 
+/**
+ * Game engine for Around the World variant
+ * Handles progression through numbers with multiplier advancement
+ */
 export class AroundTheWorldGameEngine extends BaseGameEngine {
   constructor(config) {
-    if (!config || !Array.isArray(config.players)) {
-      throw new Error('AroundTheWorldGameEngine requires a config with players array');
+    if (!config?.players?.length) {
+      throw new GameConfigError('AroundTheWorldGameEngine requires at least one player');
     }
 
     const initializedPlayers = config.players.map(player => ({
       ...player,
-      targetIndex: 0, // Track position in AROUND_THE_WORLD_TARGETS array
+      targetIndex: 0,
       stats: {
         attempts: 0,
         hits: 0,
@@ -65,28 +69,32 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
     return true;
   }
 
+  /**
+   * Handles a dart throw for the current player
+   * @param {DartThrow} dart - The dart throw data
+   */
   handleThrow(dart) {
+    if (!this.validateDartThrow(dart)) {
+      throw new GamePlayError('Invalid dart throw data');
+    }
+
     const currentPlayer = this.turnManager.getCurrentPlayer();
     const currentTargetIndex = currentPlayer.targetIndex;
 
-    // Put the old targetIndex in meta to unify shape
+    // Store throw history with metadata
     this.throwHistory.push({
       dart,
       playerIndex: this.turnManager.currentPlayerIndex,
       throwsThisTurn: this.turnManager.throwsThisTurn,
-      meta: {
-        targetIndex: currentTargetIndex,
-      },
+      meta: { targetIndex: currentTargetIndex },
     });
     
     if (!dart || typeof dart.score !== 'number') {
-      console.error('Invalid dart throw:', dart);
-      return;
+      throw new InvalidDartThrowError('Invalid dart throw:', dart);
     }
 
     if (!currentPlayer) {
-      console.error('No current player found');
-      return;
+      throw new NoCurrentPlayerError('No current player found');
     }
 
     // Store current hit and set new one
@@ -98,8 +106,7 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
     const targetNumber = AROUND_THE_WORLD_TARGETS[currentPlayer.targetIndex];
     
     if (typeof targetNumber !== 'number') {
-      console.error('Invalid target index:', currentPlayer.targetIndex);
-      return;
+      throw new InvalidTargetIndexError('Invalid target index:', currentPlayer.targetIndex);
     }
 
     // Update statistics
@@ -146,25 +153,27 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
     }
   }
 
+  /**
+   * Validates incoming dart throw data
+   * @private
+   */
+  validateDartThrow(dart) {
+    return dart && 
+           typeof dart.score === 'number' && 
+           typeof dart.multiplier === 'number';
+  }
+
   getGameState() {
     const state = super.getGameState();
     const currentPlayer = this.turnManager.getCurrentPlayer();
     
     if (!currentPlayer) {
-      console.warn('No current player found');
-      return {
-        ...state,
-        targetNumbers: [],
-      };
+      throw new NoCurrentPlayerError('No current player found');
     }
 
     const targetNumber = AROUND_THE_WORLD_TARGETS[currentPlayer.targetIndex];
     if (typeof targetNumber !== 'number') {
-      console.warn('Invalid target index:', currentPlayer.targetIndex);
-      return {
-        ...state,
-        targetNumbers: [],
-      };
+      throw new InvalidTargetIndexError('Invalid target index:', currentPlayer.targetIndex);
     }
 
     return {

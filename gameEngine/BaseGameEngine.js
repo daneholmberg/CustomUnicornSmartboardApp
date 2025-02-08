@@ -1,6 +1,14 @@
 import { TurnManager } from './TurnManager';
 
+/**
+ * Base class for all dart game engines
+ * @abstract
+ */
 export class BaseGameEngine {
+  /**
+   * @param {Object} config - Game configuration
+   * @param {Array<Player>} config.players - Array of player objects
+   */
   constructor(config) {
     this.turnManager = new TurnManager(config.players);
     this.gameMessage = '';
@@ -10,6 +18,11 @@ export class BaseGameEngine {
     this.hitHistory = [];
   }
 
+  /**
+   * Marks a player as completed and updates game state
+   * @param {Player} player - Player to mark as completed
+   * @param {string} message - Victory/completion message
+   */
   setPlayerCompleted(player, message) {
     player.completed = true;
     this.completedCount++;

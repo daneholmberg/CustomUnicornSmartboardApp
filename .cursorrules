@@ -1,0 +1,159 @@
+# Project: iOS app for the unicorn smartboard. The smartboard is a dartboard that detects darts and sends a bluetooth signal to 
+# our app. 
+
+- Not all dartboard games are using standard scoring. For example around the world allows for doubles and triples to skip the next number(s)
+
+# File Organization
+organize_imports:
+  order:
+    - react
+    - react-native
+    - expo
+    - hooks/
+    - components/
+    - constants/
+    - theme
+    - utils/
+    - types/
+
+# Naming Conventions
+naming:
+  components: PascalCase
+  files: kebab-case
+  functions: camelCase
+  constants: UPPER_SNAKE_CASE
+  classes: PascalCase
+  hooks: useCamelCase
+
+# Code Style
+style:
+  quotes: single
+  semicolons: required
+  maxLineLength: 100
+  indent: 2
+  trailingComma: es5
+
+# Component Structure
+component_structure:
+  order:
+    - imports
+    - types/interfaces
+    - component declaration
+    - hooks/state
+    - effects
+    - handlers
+    - render helpers
+    - main render
+    - styles
+  stylesheet:
+    required: true
+    location: "adjacent"  # Forces StyleSheet.create in same file
+
+# Documentation
+documentation:
+  requires:
+    - class descriptions
+    - complex function descriptions
+    - game engine methods
+    - configuration objects
+    - state management decisions  # Added to document local vs context state choices
+
+# Game Engine Rules
+game_engine:
+  required_methods:
+    - handleThrow
+    - undoLastThrow
+    - getGameState
+  inheritance: must extend BaseGameEngine
+
+# Theme Usage
+theme:
+  colors: use theme.colors only
+  spacing: use theme.spacing only
+  borderRadius: use theme.borderRadius only
+  elevation: use theme.elevation only
+
+# Testing
+testing:
+  coverage: 80%
+  required:
+    - game engine logic
+    - scoring calculations
+    - turn management
+    - player state updates
+
+# Performance
+performance:
+  useMemo: required for expensive calculations
+  useCallback: required for handler functions
+  avoid_inline_styles: true
+  use_pure_components: preferred
+
+# Error Handling
+error_handling:
+  required:
+    - smartboard connection errors
+    - game state validation
+    - player input validation
+    - configuration validation
+  style:
+    location: dedicated error classes
+    format: consistent error messages
+    validation: early validation pattern
+
+# Git
+git:
+  ignore:
+    - node_modules/
+    - .expo/
+    - dist/
+    - web-build/
+    - *.log
+    - .env*
+
+# Bad Practice Prevention
+prevent:
+  inline_styles:
+    error: "Use StyleSheet.create() instead of inline styles"
+    except: ["dynamic_values_only"]
+    
+  var_keyword:
+    error: "Use const or let instead of var"
+    
+  magic_numbers:
+    error: "Move numeric constants to constants/ or theme/"
+    except: ["0", "1", "-1"]
+    
+  nested_callbacks:
+    max_depth: 2
+    recommend: "Use async/await pattern"
+
+# File Organization
+enforce_structure:
+  game_specific:
+    path: "components/game-specific/"
+    pattern: ["*Game*", "*Dartboard*"]
+    
+  styles:
+    location: "adjacent_stylesheet"
+    error: "Create separate stylesheet for component"
+
+# Type Safety
+types:
+  recommend: "Consider adding TypeScript"
+  require:
+    - prop_validation
+    - state_validation
+    - config_validation
+
+# State Management
+state_management:
+  rules:
+    - local_state: UI-only changes
+    - context: shared game state
+    - redux: not used
+  documentation:
+    required: true
+    template: |
+      State Choice: [local/context]
+      Reason: [explanation]
