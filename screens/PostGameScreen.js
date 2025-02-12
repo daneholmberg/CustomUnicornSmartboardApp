@@ -3,24 +3,26 @@ import { StyleSheet, View, ScrollView, Text, TouchableOpacity } from 'react-nati
 import { theme } from '../theme';
 import { X01EndGameStats } from '../components/gameSpecific/endGameStats/X01EndGameStats';
 import { AroundTheWorldEndGameStats } from '../components/gameSpecific/endGameStats/AroundTheWorldEndGameStats';
+import { HalveItEndGameStats } from '../components/gameSpecific/endGameStats/HalveItEndGameStats';
 import { GAME_MODES } from '../constants/gameModes';
 
 export default function PostGameScreen({ gameState, onNewGame, onRestartGame }) {
   console.log('PostGameScreen - gameState:', gameState); // Debug log
 
   // Create a mapping of game types to their components
-  const gameComponents = {
+  const GAME_STATS_COMPONENTS = {
     [GAME_MODES.X01]: X01EndGameStats,
     [GAME_MODES.AROUND_THE_WORLD]: AroundTheWorldEndGameStats,
+    [GAME_MODES.HALVE_IT]: HalveItEndGameStats,
   };
 
-  const StatsComponent = gameComponents[gameState?.gameType];
+  const StatsComponent = GAME_STATS_COMPONENTS[gameState?.gameType];
 
   // Better error handling with more information
   if (!StatsComponent) {
     console.error('Game type error:', {
       receivedType: gameState?.gameType,
-      availableTypes: Object.keys(gameComponents),
+      availableTypes: Object.keys(GAME_STATS_COMPONENTS),
       fullGameState: gameState,
     });
 
@@ -40,6 +42,9 @@ export default function PostGameScreen({ gameState, onNewGame, onRestartGame }) 
     );
   }
 
+  // Sort players by score in descending order
+  const sortedPlayers = [...gameState.players].sort((a, b) => b.score - a.score);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Game Results</Text>
@@ -48,7 +53,7 @@ export default function PostGameScreen({ gameState, onNewGame, onRestartGame }) 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        {gameState.players.map((player, index) => (
+        {sortedPlayers.map((player, index) => (
           <StatsComponent key={`player-${index}`} player={player} />
         ))}
       </ScrollView>

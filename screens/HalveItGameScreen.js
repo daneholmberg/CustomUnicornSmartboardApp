@@ -13,7 +13,7 @@ const HalveItStats = ({ stats }) => (
   </View>
 );
 
-export default function HalveItGameScreen({ gameConfig, onReset, onRestart }) {
+export default function HalveItGameScreen({ gameConfig, onReset, onRestart, onEndGame }) {
   const gameState = useGameState(gameConfig);
   const scrollViewRef = useRef(null);
   
@@ -67,6 +67,7 @@ export default function HalveItGameScreen({ gameConfig, onReset, onRestart }) {
       onUndo={gameState.handleUndo}
       onReset={onReset}
       onRestart={onRestart}
+      onEndGame={() => onEndGame(gameState)}
     />
   );
 }

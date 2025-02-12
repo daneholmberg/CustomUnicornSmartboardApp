@@ -1,6 +1,7 @@
 import { BaseGameEngine } from './BaseGameEngine';
 import { HALVE_IT_POSSIBLE_TARGETS } from '../constants/gameConstants';
 import { GameConfigError } from '../utils/errors';
+import { GAME_MODES } from '../constants/gameModes';
 
 export class HalveItGameEngine extends BaseGameEngine {
   constructor(config) {
@@ -25,12 +26,17 @@ export class HalveItGameEngine extends BaseGameEngine {
       stats: {
         totalHits: 0,
         rounds: 0,
-        hitRate: 0
+        hitRate: 0,
+        maxRoundScore: 0,
+        totalPenalties: 0,
+        halveRate: 0,
+        pointsLost: 0
       }
     }));
 
     super({ ...config, players: initializedPlayers });
     
+    this.hasWinner = false;
     this.rounds = rounds;
     this.roundCount = roundCount;
     this.penaltyMode = penaltyMode;
@@ -142,9 +148,21 @@ export class HalveItGameEngine extends BaseGameEngine {
       const oldScore = player.score;
       player.score = this.applyPenalty(oldScore);
       const penaltyType = this.penaltyMode === 'third' ? 'reduced by ⅓' : 'halved';
+      const pointsLost = oldScore - player.score;
+      
+      // Update penalty-related stats
+      player.stats.totalPenalties++;
+      player.stats.pointsLost += pointsLost;
+      player.stats.halveRate = Math.round((player.stats.totalPenalties / player.currentRound) * 100);
+      
       this.gameMessage = `${player.name} missed all throws! Score ${penaltyType} from ${oldScore} to ${player.score}`;
     } else {
       this.gameMessage = `${player.name} finished round with ${player.roundScore} points`;
+      
+      // Update max round score if current round is higher
+      if (player.roundScore > player.stats.maxRoundScore) {
+        player.stats.maxRoundScore = player.roundScore;
+      }
     }
 
     player.stats.rounds++;
@@ -189,6 +207,9 @@ export class HalveItGameEngine extends BaseGameEngine {
       const winnerNames = winners.map(w => w.name).join(' and ');
       this.gameMessage = `Game Over! Tie between ${winnerNames} with ${winners[0].score} points!`;
     }
+
+    // Mark game as having a winner
+    this.hasWinner = true;
 
     // Mark all players as completed for game end
     players.forEach(player => {
@@ -283,7 +304,9 @@ export class HalveItGameEngine extends BaseGameEngine {
       roundLabel: currentRound.label,
       rounds: this.rounds,
       penaltyMode: this.penaltyMode,
-      bullseyeMode: this.bullseyeMode
+      bullseyeMode: this.bullseyeMode,
+      hasWinner: this.hasWinner,
+      gameType: GAME_MODES.HALVE_IT
     };
   }
 } 
