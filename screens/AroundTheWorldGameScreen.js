@@ -8,6 +8,7 @@ import { AroundTheWorldDartboard } from '../components/game-specific/AroundTheWo
 import { theme } from '../theme';
 import { AROUND_THE_WORLD_TARGETS } from '../constants/gameConstants';
 import { useAutoScroll } from '../hooks/useAutoScroll';
+import { AroundTheWorldEndGameStats } from '../components/game-specific/AroundTheWorldEndGameStats';
 
 /**
  * State Choice: context
@@ -15,7 +16,7 @@ import { useAutoScroll } from '../hooks/useAutoScroll';
  * dartboard, player cards, and stats. Using context prevents prop drilling and 
  * centralizes game logic.
  */
-export default function AroundTheWorldGameScreen({ gameConfig, onReset, onRestart }) {
+export default function AroundTheWorldGameScreen({ gameConfig, onReset, onRestart, onEndGame }) {
   const gameState = useGameState(gameConfig);
   const scrollViewRef = useRef(null);
   
@@ -67,6 +68,7 @@ export default function AroundTheWorldGameScreen({ gameConfig, onReset, onRestar
       onUndo={gameState.handleUndo}
       onReset={onReset}
       onRestart={onRestart}
+      onEndGame={() => onEndGame(gameState)}
     />
   );
 }

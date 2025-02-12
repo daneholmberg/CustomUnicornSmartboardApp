@@ -19,13 +19,11 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.text.secondary,
-    fontSize: 10,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
   value: {
     color: theme.colors.text.highlight,
-    fontSize: 12,
     fontWeight: '700',
   },
 }); 

@@ -3,6 +3,7 @@ import { GAME_CONSTANTS } from '../constants/gameConstants';
 import { X01TurnManager } from './X01TurnManager';
 import { TurnManager } from './TurnManager';
 import { GameConfigError, GamePlayError } from '../errors/gameErrors';
+import { GAME_MODES } from '../constants/gameModes';
 
 /**
  * Game engine for X01 variants (301, 501, etc)
@@ -264,7 +265,7 @@ export class X01GameEngine extends BaseGameEngine {
       ...state,
       ...turnState,
       selectedScore: this.selectedScore,
-      gameType: 'X01',
+      gameType: GAME_MODES.X01,
       winningTargets,
       requiredMultiplier: currentPlayer.score <= 40 && currentPlayer.score % 2 === 0 ? 2 : 3,
       hasWinner: this.hasWinner,

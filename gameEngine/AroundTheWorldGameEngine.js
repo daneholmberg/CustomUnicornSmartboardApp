@@ -6,6 +6,7 @@
 
 import { BaseGameEngine } from './BaseGameEngine';
 import { AROUND_THE_WORLD_TARGETS } from '../constants';
+import { GAME_MODES } from '../constants/gameModes';
 
 // Add validation at class level
 if (!Array.isArray(AROUND_THE_WORLD_TARGETS) || AROUND_THE_WORLD_TARGETS.length === 0) {
@@ -28,7 +29,21 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
       stats: {
         attempts: 0,
         hits: 0,
-        hitRate: 0
+        hitRate: 0,
+        currentStreak: 0,
+        maxStreak: 0,
+        firstDartHits: 0,
+        firstDartAttempts: 0,
+        firstDartHitRate: 0,
+        totalDartsToNextNumber: 0,
+        numbersCompleted: 0,
+        averageDartsPerNumber: 0,
+        perfectTurns: 0,
+        doubleHits: 0,
+        tripleHits: 0,
+        multiplierAttempts: 0,
+        multiplierHitRate: 0,
+        dartsThrown: 0,
       }
     }));
     
@@ -80,40 +95,54 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
 
     const currentPlayer = this.turnManager.getCurrentPlayer();
     const currentTargetIndex = currentPlayer.targetIndex;
-
-    // Store throw history with metadata
-    this.throwHistory.push({
-      dart,
-      playerIndex: this.turnManager.currentPlayerIndex,
-      throwsThisTurn: this.turnManager.throwsThisTurn,
-      meta: { targetIndex: currentTargetIndex },
-    });
+    const targetNumber = AROUND_THE_WORLD_TARGETS[currentTargetIndex];
     
-    if (!dart || typeof dart.score !== 'number') {
-      throw new InvalidDartThrowError('Invalid dart throw:', dart);
-    }
-
-    if (!currentPlayer) {
-      throw new NoCurrentPlayerError('No current player found');
-    }
-
-    // Store current hit and set new one
-    if (this.lastHit) {
-      this.hitHistory.push(this.lastHit);
-    }
-    this.lastHit = dart;
-    this.turnManager.addDart(dart);
+    // Track stats before the throw
+    const isFirstDartOfTurn = this.turnManager.throwsThisTurn === 0;
+    const dartsAtCurrentTarget = currentPlayer.stats.dartsThrown - 
+      (currentPlayer.stats.numbersCompleted * currentPlayer.stats.averageDartsPerNumber);
     
-    const targetNumber = AROUND_THE_WORLD_TARGETS[currentPlayer.targetIndex];
+    // Update base stats
+    currentPlayer.stats.dartsThrown++;
     
-    if (typeof targetNumber !== 'number') {
-      throw new InvalidTargetIndexError('Invalid target index:', currentPlayer.targetIndex);
+    // Track multiplier attempts
+    if (dart.multiplier > 1) {
+      currentPlayer.stats.multiplierAttempts++;
+      if (dart.multiplier === 2) currentPlayer.stats.doubleHits++;
+      if (dart.multiplier === 3) currentPlayer.stats.tripleHits++;
     }
 
-    // Update statistics
-    if (dart.score === targetNumber || (targetNumber === 25 && dart.score === 50)) {
+    const isHit = dart.score === targetNumber || 
+      (targetNumber === 25 && dart.score === 50);
+
+    if (isHit) {
+      // Update streaks
+      currentPlayer.stats.currentStreak++;
+      currentPlayer.stats.maxStreak = Math.max(
+        currentPlayer.stats.maxStreak,
+        currentPlayer.stats.currentStreak
+      );
+
+      // Track first dart hits
+      if (isFirstDartOfTurn) {
+        currentPlayer.stats.firstDartHits++;
+      }
       currentPlayer.stats.hits++;
       
+      // Track darts to complete number
+      currentPlayer.stats.totalDartsToNextNumber += dartsAtCurrentTarget + 1;
+      currentPlayer.stats.numbersCompleted++;
+      
+      // Update averages
+      currentPlayer.stats.averageDartsPerNumber = 
+        currentPlayer.stats.totalDartsToNextNumber / currentPlayer.stats.numbersCompleted;
+      
+      // Check for perfect turn (3 hits in one turn)
+      if (this.turnManager.throwsThisTurn === 2 && 
+          this.turnManager.currentTurnHits === 2) {
+        currentPlayer.stats.perfectTurns++;
+      }
+
       // If not at bullseye yet, advance by multiplier
       if (currentPlayer.targetIndex < AROUND_THE_WORLD_TARGETS.length - 1) {
         const advance = Math.min(
@@ -137,21 +166,40 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
       // If hit bullseye, win
       else {
         this.setPlayerCompleted(currentPlayer, `${currentPlayer.name} wins with a bullseye!`);
+        this.hasWinner = true;
         return;
       }
     } else {
+      currentPlayer.stats.currentStreak = 0;
       // Add message for misses
       this.gameMessage = `${currentPlayer.name} missed ${targetNumber} with ${dart.score}`;
     }
     
-    currentPlayer.stats.attempts++;
-    currentPlayer.stats.hitRate = Math.round((currentPlayer.stats.hits / currentPlayer.stats.attempts) * 100);
+    // Update first dart attempts
+    if (isFirstDartOfTurn) {
+      currentPlayer.stats.firstDartAttempts++;
+    }
+
+    // Update rates
+    currentPlayer.stats.hitRate = Math.round(
+      (currentPlayer.stats.hits / currentPlayer.stats.attempts) * 100
+    );
+    currentPlayer.stats.firstDartHitRate = Math.round(
+      (currentPlayer.stats.firstDartHits / currentPlayer.stats.firstDartAttempts) * 100
+    );
+    currentPlayer.stats.multiplierHitRate = Math.round(
+      ((currentPlayer.stats.doubleHits + currentPlayer.stats.tripleHits) / 
+       currentPlayer.stats.multiplierAttempts) * 100
+    ) || 0;
 
     if (this.turnManager.willBeEndOfTurn()) {
       this.turnManager.nextPlayer();
     } else {
       this.turnManager.incrementThrows();
     }
+
+    // Inside handleThrow method, add this line before updating rates:
+    currentPlayer.stats.attempts++;
   }
 
   /**
@@ -180,6 +228,8 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
     return {
       ...state,
       targetNumbers: [targetNumber],
+      hasWinner: this.hasWinner,
+      gameType: GAME_MODES.AROUND_THE_WORLD,
     };
   }
 }
