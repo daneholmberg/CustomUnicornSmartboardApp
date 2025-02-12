@@ -137,9 +137,12 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
       currentPlayer.stats.averageDartsPerNumber = 
         currentPlayer.stats.totalDartsToNextNumber / currentPlayer.stats.numbersCompleted;
       
-      // Check for perfect turn (3 hits in one turn)
+      // Track hits in current turn
+      this.turnManager.currentTurnHits = (this.turnManager.currentTurnHits || 0) + 1;
+      
+      // Check for perfect turn (hitting all 3 darts in a turn)
       if (this.turnManager.throwsThisTurn === 2 && 
-          this.turnManager.currentTurnHits === 2) {
+          this.turnManager.currentTurnHits === 3) {
         currentPlayer.stats.perfectTurns++;
       }
 
@@ -193,6 +196,7 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
     ) || 0;
 
     if (this.turnManager.willBeEndOfTurn()) {
+      this.turnManager.currentTurnHits = 0;  // Reset hits counter for next turn
       this.turnManager.nextPlayer();
     } else {
       this.turnManager.incrementThrows();

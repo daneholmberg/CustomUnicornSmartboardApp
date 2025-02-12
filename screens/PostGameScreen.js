@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { theme } from '../theme';
-import { X01EndGameStats } from '../components/game-specific/X01EndGameStats';
-import { AroundTheWorldEndGameStats } from '../components/game-specific/AroundTheWorldEndGameStats';
+import { X01EndGameStats } from '../components/gameSpecific/endGameStats/X01EndGameStats';
+import { AroundTheWorldEndGameStats } from '../components/gameSpecific/endGameStats/AroundTheWorldEndGameStats';
 import { GAME_MODES } from '../constants/gameModes';
 
 export default function PostGameScreen({ gameState, onNewGame, onRestartGame }) {

@@ -6,7 +6,7 @@ import { PlayerCard } from '../components/PlayerCard';
 import { X01Stats } from '../components/X01Stats';
 import { theme } from '../theme';
 import { useAutoScroll } from '../hooks/useAutoScroll';
-import { X01Dartboard } from '../components/game-specific/X01Dartboard';
+import { X01Dartboard } from '../components/gameSpecific/X01Dartboard';
 
 
 /**

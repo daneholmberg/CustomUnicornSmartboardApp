@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Platform, TouchableOpacity, Modal } from 'react
 import Dartboard from './Dartboard';
 import { theme } from '../theme';
 import { useOrientation } from '../hooks/useOrientation';
-import { DartDisplay } from './game-specific/DartDisplay';
+import { DartDisplay } from './gameSpecific/DartDisplay';
 
 export default function GameScreen({ 
   title,

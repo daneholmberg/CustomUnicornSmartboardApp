@@ -3,7 +3,7 @@ import { StyleSheet, View, ScrollView, Text } from 'react-native';
 import { useGameState } from '../hooks/useGameState';
 import GameScreen from '../components/GameScreen';
 import { PlayerCard } from '../components/PlayerCard';
-import { HalveItDartboard } from '../components/game-specific/HalveItDartboard';
+import { HalveItDartboard } from '../components/gameSpecific/HalveItDartboard';
 import { theme } from '../theme';
 import { useAutoScroll } from '../hooks/useAutoScroll';
 

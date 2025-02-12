@@ -4,11 +4,11 @@ import { useGameState } from '../hooks/useGameState';
 import GameScreen from '../components/GameScreen';
 import { PlayerCard } from '../components/PlayerCard';
 import { AroundTheWorldStats } from '../components/AroundTheWorldStats';
-import { AroundTheWorldDartboard } from '../components/game-specific/AroundTheWorldDartboard';
+import { AroundTheWorldDartboard } from '../components/gameSpecific/AroundTheWorldDartboard';
 import { theme } from '../theme';
 import { AROUND_THE_WORLD_TARGETS } from '../constants/gameConstants';
 import { useAutoScroll } from '../hooks/useAutoScroll';
-import { AroundTheWorldEndGameStats } from '../components/game-specific/AroundTheWorldEndGameStats';
+import { AroundTheWorldEndGameStats } from '../components/gameSpecific/endGameStats/AroundTheWorldEndGameStats';
 
 /**
  * State Choice: context
