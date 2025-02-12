@@ -17,10 +17,11 @@ export default function GameScreen({
   onReset,
   onRestart,
   onEndGame,
+  roundInfo,
+  targetDescription,
 }) {
   const orientation = useOrientation();
   const { throwsThisTurn, lastHit, targetNumbers } = gameState;
-  // Get gameMessage but provide default if none exists
   const gameMessage = gameState.gameMessage || "Game in progress";
   
   return (
@@ -31,7 +32,9 @@ export default function GameScreen({
       ]}>
         <View style={[styles.header, theme.elevation.small]}>
           <View style={styles.headerTop}>
-            <View style={styles.headerLeft} />
+            <View style={styles.headerLeft}>
+              {roundInfo && <Text style={styles.roundInfoText}>{roundInfo}</Text>}
+            </View>
             <Text style={styles.headerTitle}>{title}</Text>
             <View style={styles.headerControls}>
               {gameState.hasWinner && (
@@ -58,6 +61,7 @@ export default function GameScreen({
           </View>
           
           <View style={styles.messageContainer}>
+            <View style={styles.messageLeft} />
             <Text style={styles.gameMessage}>{gameMessage}</Text>
             <View style={styles.throwInfo}>
               <TouchableOpacity 
@@ -82,11 +86,16 @@ export default function GameScreen({
           orientation === 'landscape' && styles.landscapeContent
         ]}>
           <View style={[styles.gameInfo, theme.elevation.small]}>
-            <DartDisplay 
-              darts={gameState.currentTurnDarts}
-              lastTurnDarts={gameState.lastTurnDarts}
-              lastTurnTimestamp={gameState.lastTurnTimestamp}
-            />
+            <View style={styles.dartDisplayRow}>
+              <DartDisplay 
+                darts={gameState.currentTurnDarts}
+                lastTurnDarts={gameState.lastTurnDarts}
+                lastTurnTimestamp={gameState.lastTurnTimestamp}
+              />
+              {targetDescription && (
+                <Text style={styles.targetDescription}>{targetDescription}</Text>
+              )}
+            </View>
             {renderPlayerInfo()}
           </View>
 
@@ -133,6 +142,12 @@ const styles = StyleSheet.create({
   },
   headerLeft: {
     width: 180,
+    justifyContent: 'center',
+  },
+  roundInfoText: {
+    color: theme.colors.text.primary,
+    fontSize: 14,
+    fontWeight: '600',
   },
   headerControls: {
     flexDirection: 'row',
@@ -169,18 +184,45 @@ const styles = StyleSheet.create({
     padding: theme.spacing.xs,
     borderRadius: theme.borderRadius.md,
     position: 'relative',
+    height: 32,
+    justifyContent: 'center',
+  },
+  messageLeft: {
+    width: 120,
   },
   gameMessage: {
     fontSize: 14,
     color: theme.colors.text.primary,
-    textAlign: 'center',
     fontWeight: '500',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    paddingHorizontal: 120,
+    lineHeight: 32,
+  },
+  throwInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    position: 'absolute',
+    right: theme.spacing.xs,
+    height: 32,
+    top: 0,
+  },
+  dartDisplayRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xs,
   },
   throwCount: {
     color: theme.colors.text.primary,
     fontSize: 12,
     fontWeight: '600',
-    lineHeight: 16,
+    height: 24,
+    lineHeight: 24,
   },
   throwTotal: {
     opacity: 0.6,
@@ -233,22 +275,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
   },
-  throwInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-    position: 'absolute',
-    right: theme.spacing.sm,
-    top: '50%',
-    transform: [{ translateY: -8 }],
-  },
   undoButton: {
     backgroundColor: theme.colors.surface,
     paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 4,
+    height: 24,
     borderRadius: theme.borderRadius.sm,
     justifyContent: 'center',
-    height: 24,
     ...theme.elevation.tiny,
   },
   undoButtonDisabled: {
@@ -258,9 +290,14 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
     fontSize: 12,
     fontWeight: '600',
-    lineHeight: 16,
   },
   endGameButton: {
     backgroundColor: theme.colors.success,
+  },
+  targetDescription: {
+    fontSize: 14,
+    color: theme.colors.text.primary,
+    fontWeight: '500',
+    marginLeft: theme.spacing.md,
   },
 });

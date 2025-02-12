@@ -21,10 +21,6 @@ export default function HalveItGameScreen({ gameConfig, onReset, onRestart, onEn
 
   const renderPlayerInfo = () => (
     <View style={styles.container}>
-      <View style={styles.roundInfo}>
-        <Text style={styles.roundLabel}>ROUND {gameState.currentRound} OF {gameState.totalRounds}</Text>
-        <Text style={styles.roundTarget}>{gameState.roundDescription}</Text>
-      </View>
       <ScrollView 
         ref={scrollViewRef}
         style={styles.scrollView}
@@ -53,6 +49,8 @@ export default function HalveItGameScreen({ gameConfig, onReset, onRestart, onEn
   return (
     <GameScreen
       title="Halve It"
+      roundInfo={`Round ${gameState.currentRound} of ${gameState.totalRounds}`}
+      targetDescription={gameState.roundDescription}
       gameState={gameState}
       DartboardComponent={() => (
         <HalveItDartboard
@@ -75,24 +73,6 @@ export default function HalveItGameScreen({ gameConfig, onReset, onRestart, onEn
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  roundInfo: {
-    backgroundColor: theme.colors.surface,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
-    marginBottom: theme.spacing.md,
-    alignItems: 'center',
-  },
-  roundLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.xs,
-  },
-  roundTarget: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.text.primary,
   },
   scrollView: {
     flex: 1,
