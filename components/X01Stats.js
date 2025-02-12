@@ -5,9 +5,9 @@ import { theme } from '../theme';
 export const X01Stats = ({ stats, textSize = 10, variant = 'simple' }) => {
   if (variant === 'simple') {
     return (
-      <View style={styles.statItem}>
-        <Text style={[styles.label, { fontSize: textSize }]}>AVG/ROUND:</Text>
-        <Text style={[styles.value, { fontSize: textSize }]}>
+      <View style={styles.simpleStatItem}>
+        <Text style={[styles.simpleLabel, { fontSize: textSize }]}>AVG/ROUND:</Text>
+        <Text style={[styles.simpleValue, { fontSize: textSize }]}>
           {stats?.averagePerRound || 0}
         </Text>
       </View>
@@ -169,5 +169,19 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     lineHeight: 32,
+  },
+  simpleStatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  simpleLabel: {
+    color: theme.colors.text.secondary,
+    fontWeight: '500',
+    opacity: 0.9,
+  },
+  simpleValue: {
+    color: theme.colors.text.highlight,
+    fontWeight: '700',
   },
 }); 
