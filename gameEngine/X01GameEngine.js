@@ -24,7 +24,14 @@ export class X01GameEngine extends BaseGameEngine {
       stats: {
         totalScore: 0,
         rounds: 0,
-        averagePerRound: 0
+        averagePerRound: 0,
+        first9DartAvg: 0,
+        highestRound: 0,
+        rounds50Plus: 0,
+        rounds75Plus: 0,
+        rounds100Plus: 0,
+        rounds120Plus: 0,
+        first3Rounds: [], // Track first 3 rounds for 9-dart average
       }
     }));
 
@@ -153,6 +160,7 @@ export class X01GameEngine extends BaseGameEngine {
    */
   handleWin(player) {
     this.setPlayerCompleted(player, `${player.name} wins!`);
+    this.hasWinner = true;
   }
 
   /**
@@ -173,8 +181,42 @@ export class X01GameEngine extends BaseGameEngine {
    */
   updatePlayerStats(player, isLastThrowOfTurn) {
     if (isLastThrowOfTurn) {
-      player.stats.totalScore += this.turnManager.currentTurnScore;
+      const roundScore = this.turnManager.currentTurnScore;
+      player.stats.totalScore += roundScore;
       player.stats.rounds += 1;
+      
+      // Update highest round if current round is higher
+      if (roundScore > player.stats.highestRound) {
+        player.stats.highestRound = roundScore;
+      }
+
+      // Track high score rounds
+      if (roundScore >= 120) {
+        player.stats.rounds120Plus++;
+        player.stats.rounds100Plus++;
+        player.stats.rounds75Plus++;
+        player.stats.rounds50Plus++;
+      } else if (roundScore >= 100) {
+        player.stats.rounds100Plus++;
+        player.stats.rounds75Plus++;
+        player.stats.rounds50Plus++;
+      } else if (roundScore >= 75) {
+        player.stats.rounds75Plus++;
+        player.stats.rounds50Plus++;
+      } else if (roundScore >= 50) {
+        player.stats.rounds50Plus++;
+      }
+
+      // Calculate first 9 dart average (first 3 rounds)
+      if (player.stats.rounds <= 3) {
+        player.stats.first3Rounds.push(roundScore);
+        if (player.stats.rounds === 3) {
+          const total9DartScore = player.stats.first3Rounds.reduce((a, b) => a + b, 0);
+          player.stats.first9DartAvg = Math.round(total9DartScore / 3);
+        }
+      }
+
+      // Update overall average
       player.stats.averagePerRound = Math.round(
         player.stats.totalScore / player.stats.rounds
       );
@@ -225,6 +267,7 @@ export class X01GameEngine extends BaseGameEngine {
       gameType: 'X01',
       winningTargets,
       requiredMultiplier: currentPlayer.score <= 40 && currentPlayer.score % 2 === 0 ? 2 : 3,
+      hasWinner: this.hasWinner,
     };
   }
 

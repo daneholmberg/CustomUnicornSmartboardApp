@@ -15,7 +15,7 @@ import { X01Dartboard } from '../components/game-specific/X01Dartboard';
  * dartboard, player cards, and stats. Using context prevents prop drilling and 
  * centralizes game logic.
  */
-export default function X01GameScreen({ gameConfig, onReset, onRestart }) {
+export default function X01GameScreen({ gameConfig, onReset, onRestart, onEndGame }) {
   const gameState = useGameState(gameConfig);
   const scrollViewRef = useRef(null);
   
@@ -38,7 +38,7 @@ export default function X01GameScreen({ gameConfig, onReset, onRestart }) {
             player={player}
             isActive={index === gameState.currentPlayerIndex}
             mainScore={player.score}
-            renderStats={(player) => <X01Stats stats={player.stats} />}
+            renderStats={(player) => <X01Stats stats={player.stats} variant="simple" />}
             playerCount={gameState.players.length}
           />
         ))}
@@ -63,6 +63,7 @@ export default function X01GameScreen({ gameConfig, onReset, onRestart }) {
       onUndo={gameState.handleUndo}
       onReset={onReset}
       onRestart={onRestart}
+      onEndGame={() => onEndGame(gameState)}
     />
   );
 }

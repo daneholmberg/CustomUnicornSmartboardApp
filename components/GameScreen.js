@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Platform, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Platform, TouchableOpacity, Modal } from 'react-native';
 import Dartboard from './Dartboard';
 import { theme } from '../theme';
 import { useOrientation } from '../hooks/useOrientation';
@@ -16,6 +16,7 @@ export default function GameScreen({
   onUndo,
   onReset,
   onRestart,
+  onEndGame,
 }) {
   const orientation = useOrientation();
   const { throwsThisTurn, lastHit, targetNumbers } = gameState;
@@ -33,6 +34,14 @@ export default function GameScreen({
             <View style={styles.headerLeft} />
             <Text style={styles.headerTitle}>{title}</Text>
             <View style={styles.headerControls}>
+              {gameState.hasWinner && (
+                <TouchableOpacity 
+                  style={[styles.controlButton, styles.endGameButton]}
+                  onPress={onEndGame}
+                >
+                  <Text style={styles.controlButtonText}>🏆 End Game</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity 
                 style={[styles.controlButton, styles.restartButton]}
                 onPress={onRestart}
@@ -250,5 +259,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     lineHeight: 16,
+  },
+  endGameButton: {
+    backgroundColor: theme.colors.success,
   },
 });

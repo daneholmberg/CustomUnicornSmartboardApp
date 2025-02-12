@@ -9,6 +9,7 @@ import AroundTheWorldGameScreen from './screens/AroundTheWorldGameScreen';
 import HalveItGameScreen from './screens/HalveItGameScreen';
 import { theme } from './theme';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import PostGameScreen from './screens/PostGameScreen';
 
 const gameScreens = {
   [GAME_MODES.X01]: X01GameScreen,
@@ -18,6 +19,8 @@ const gameScreens = {
 
 export default function App() {
   const [gameConfig, setGameConfig] = useState(null);
+  const [showPostGame, setShowPostGame] = useState(false);
+  const [lastGameState, setLastGameState] = useState(null);
 
   useEffect(() => {
     async function lockOrientation() {
@@ -47,7 +50,33 @@ export default function App() {
     setGameConfig({ ...gameConfig });
   };
 
+  const handleEndGame = (gameState) => {
+    setLastGameState(gameState);
+    setShowPostGame(true);
+  };
+
+  const startNewGame = () => {
+    setGameConfig(null);
+    setShowPostGame(false);
+    setLastGameState(null);
+  };
+
+  const restartWithSamePlayers = () => {
+    setShowPostGame(false);
+    restartGame();
+  };
+
   const CurrentGameScreen = gameConfig ? gameScreens[gameConfig.mode] : null;
+
+  if (showPostGame) {
+    return (
+      <PostGameScreen
+        gameState={lastGameState}
+        onNewGame={startNewGame}
+        onRestartGame={restartWithSamePlayers}
+      />
+    );
+  }
 
   return (
     <SmartboardProvider>
@@ -58,6 +87,7 @@ export default function App() {
               gameConfig={gameConfig} 
               onReset={resetGame}
               onRestart={restartGame}
+              onEndGame={(gameState) => handleEndGame(gameState)}
             />
           ) : (
             <GameSetupScreen onStartGame={startGame} />
