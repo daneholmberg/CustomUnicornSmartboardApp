@@ -1,0 +1,251 @@
+# Project Configuration
+project:
+  name: "Unicorn Smartboard iOS App"
+  description: "iOS app for the unicorn smartboard that detects darts and sends bluetooth signals"
+  note: "MUST UPDATE .cursorrules when making ANY changes to the project. This is very important."
+
+# Project: iOS app for the unicorn smartboard. The smartboard is a dartboard that detects darts and sends a bluetooth signal to 
+# our app. 
+
+# Unicorn Smartboard iOS App Configuration
+description: "iOS app for the unicorn smartboard that detects darts and sends bluetooth signals"
+note: "Not all dartboard games use standard scoring. For example, Around the World allows doubles and triples to skip numbers."
+
+reactNativeExpoBestPractices:
+  - Use functional components with hooks
+  - Utilize Expo SDK features and APIs
+  - Implement proper navigation using React Navigation
+  - Use Expo's asset system for images and fonts
+  - Implement proper error handling and crash reporting
+  - Utilize Expo's push notification system
+
+
+# Code Structure Overview
+structure:
+  directories:
+    screens:
+      description: "Main game screens and navigation containers"
+      files:
+        - X01GameScreen.js: "Handles 301/501/701 gameplay, scoring, and player turns"
+        - AroundTheWorldGameScreen.js: "Sequential number targeting game (1-20), with double/triple skips"
+        - HalveItGameScreen.js: "Halve It game implementation with target-based scoring"
+        - PostGameScreen.js: "End game statistics and results display"
+    
+    components:
+      description: "Reusable UI components across different game modes"
+      subdirectories:
+        game-specific:
+          description: "Components tailored to specific game types"
+          files:
+            - X01Dartboard.js: "Visual representation of dartboard with X01 scoring zones"
+            - X01DartboardLogic.js: "Handles X01 scoring rules and validations"
+            - DartDisplay.js: "Real-time display of current throw sequence"
+            - HitHistory.js: "Scrollable log of previous throws with undo"
+            - HalveItDartboard.js: "Specialized dartboard for Halve It game mode"
+          subdirectories:
+            endGameStats:
+              files:
+                - X01EndGameStats.js: "Game completion statistics for X01"
+                - AroundTheWorldEndGameStats.js: "Game completion statistics for Around the World"
+                - HalveItEndGameStats.js: "Game completion statistics for Halve It"
+    
+    gameEngine:
+      description: "Core game logic and state management"
+      files:
+        - BaseGameEngine.js: "Common game interfaces and shared functionality"
+        - X01GameEngine.js: "X01 rules and checkout strategies"
+        - AroundTheWorldGameEngine.js: "Sequential targeting and skip rules"
+        - HalveItGameEngine.js: "Halve It game rules and scoring"
+        - TurnManager.js: "Player rotation and turn validity"
+    
+    context:
+      description: "Global state management"
+      files:
+        - DartboardContext.js: "Bluetooth connection and board state"
+        - GameContext.js: "Shared game state and settings"
+    
+    hooks:
+      description: "Custom React hooks"
+      files:
+        - useSmartboard.js: "Smartboard connection and data handling"
+        - useGameState.js: "Game state management hook"
+    
+    constants:
+      description: "App-wide configuration"
+      files:
+        - gameModes.js: "Game type definitions and rules"
+        - scoring.js: "Scoring configurations"
+        - boardSegments.js: "Dartboard segment definitions"
+    
+    theme:
+      description: "UI/UX standardization"
+      files:
+        - theme.js: "Colors, spacing, typography, animations"
+    
+    utils:
+      description: "Helper functions"
+      files:
+        - scoring.js: "Score calculations"
+        - validation.js: "Input and state validation"
+        - formatting.js: "Data formatting utilities"
+    
+    styles:
+      description: "Shared styles"
+      files:
+        - gameStyles.js: "Common game screen styles"
+    
+    errors:
+      description: "Error handling"
+      files:
+        - GameErrors.js: "Game-specific error classes"
+        - ConnectionErrors.js: "Bluetooth connection errors"
+
+# File Organization
+organize_imports:
+  order:
+    - react
+    - react-native
+    - expo
+    - context/
+    - screens/
+    - components/
+    - hooks/
+    - constants/
+    - theme/
+    - utils/
+    - styles/
+    - types/
+    - assets/
+  group_rules:
+    - "Keep React and React Native imports first"
+    - "Group related imports together"
+    - "Keep relative imports after absolute imports"
+    - "Sort alphabetically within groups"
+  special_cases:
+    - "Place type imports at the end"
+    - "Place asset imports after all other imports"
+    - "Group context providers together"
+
+# Naming Conventions
+naming:
+  components: PascalCase
+  files:
+    components: PascalCase
+    hooks: camelCase
+    utils: camelCase
+  functions: camelCase
+  constants: UPPER_SNAKE_CASE
+  classes: PascalCase
+  hooks: useCamelCase
+
+# Code Style
+style:
+  quotes: single
+  semicolons: required
+  maxLineLength: 100
+  indent: 2
+  trailingComma: es5
+
+# Component Structure
+component_structure:
+  order:
+    - imports
+    - types/interfaces
+    - component declaration
+    - hooks/state
+    - effects
+    - handlers
+    - render helpers
+    - main render
+    - styles
+  stylesheet:
+    required: true
+    location: "adjacent"
+
+# Documentation
+documentation:
+  requires:
+    - class descriptions
+    - complex function descriptions
+    - game engine methods
+    - configuration objects
+    - state management decisions
+
+# Game Engine Rules
+game_engine:
+  required_methods:
+    - handleThrow
+    - undoLastThrow
+    - getGameState
+  inheritance: "must extend BaseGameEngine"
+
+# Theme Usage
+theme:
+  rules:
+    colors: "use theme.colors only"
+    spacing: "use theme.spacing only"
+    borderRadius: "use theme.borderRadius only"
+    elevation: "use theme.elevation only"
+
+# Testing
+testing:
+  coverage: "80%"
+  required:
+    - game engine logic
+    - scoring calculations
+    - turn management
+    - player state updates
+
+# Performance
+performance:
+  rules:
+    useMemo: "required for expensive calculations"
+    useCallback: "required for handler functions"
+    avoid_inline_styles: true
+    use_pure_components: "preferred"
+
+# Error Handling
+error_handling:
+  required:
+    - smartboard connection errors
+    - game state validation
+    - player input validation
+    - configuration validation
+  style:
+    location: "dedicated error classes"
+    format: "consistent error messages"
+    validation: "early validation pattern"
+
+
+# Bad Practice Prevention
+prevent:
+  inline_styles:
+    error: "Use StyleSheet.create() instead of inline styles"
+    except: 
+      - "dynamic_values_only"
+  
+  var_keyword:
+    error: "Use const or let instead of var"
+  
+  magic_numbers:
+    error: "Move numeric constants to constants/ or theme/"
+    except: 
+      - "0"
+      - "1"
+      - "-1"
+  
+  nested_callbacks:
+    max_depth: 2
+    recommend: "Use async/await pattern"
+
+# State Management
+state_management:
+  rules:
+    local_state: "UI-only changes"
+    context: "shared game state"
+    redux: "not used"
+  documentation:
+    required: true
+    template: |
+      State Choice: [local/context]
+      Reason: [explanation]

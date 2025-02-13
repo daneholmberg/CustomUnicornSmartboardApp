@@ -1,195 +1,112 @@
-ALWAYS update the .cursorrules file when new directories and files are created to make sure it's updated with the correct rules.
-
-# Project: iOS app for the unicorn smartboard. The smartboard is a dartboard that detects darts and sends a bluetooth signal to 
-# our app. 
-
-- Not all dartboard games are using standard scoring. For example around the world allows for doubles and triples to skip the next number(s)
-
-# Code Structure Overview
-structure:
-  screens/:                    # Main game screens and navigation containers
-    - X01GameScreen           # Handles 301/501/701 gameplay, scoring, and player turns
-    - AroundTheWorldGameScreen # Sequential number targeting game (1-20), with double/triple skips
-    - HalveItGameScreen        # Halve It game implementation with target-based scoring
-  
-  components/:                # Reusable UI components across different game modes
-    game-specific/:          # Components tailored to specific game types
-      - X01Dartboard         # Visual representation of dartboard with X01 scoring zones
-      - X01DartboardLogic    # Handles X01 scoring rules, validations, and calculations
-      - DartDisplay          # Real-time display of current throw sequence (1-3 darts)
-      - HitHistory           # Scrollable log of previous throws with undo capability
-  
-  gameEngine/:               # Core game logic and state management
-    - BaseGameEngine         # Defines common game interfaces and shared functionality
-    - X01GameEngine         # Implements X01 rules, checkout strategies, and scoring
-    - AroundTheWorldGameEngine # Manages sequential targeting and skip rules
-    - TurnManager           # Controls player rotation, turn validity, and game flow
-    - HalveItGameEngine       # Manages Halve It game rules and scoring logic
-  
-  context/:                  # Global state management using React Context
-    - DartboardContext      # Manages bluetooth connection, dart detection, and board state
-  
-  hooks/:                    # Custom React hooks for shared logic
-                            # Examples: useDartboardConnection, useGameState, useScoring
-  
-  constants/:               # App-wide configuration and game rules
-                           # Includes scoring values, game modes, board segments
-  
-  theme/:                   # UI/UX standardization
-                           # Contains colors, spacing, typography, and animations
-  
-  utils/:                   # Helper functions and shared utilities
-                           # Includes scoring calculations, validation, and formatters
-
-
-
-# File Organization
-organize_imports:
-  order:
-    - react
-    - react-native
-    - expo
-    - hooks/
-    - components/
-    - constants/
-    - theme
-    - utils/
-    - types/
-
-# Naming Conventions
-naming:
-  components: PascalCase
-  files:
-    components: PascalCase    # React components and classes
-    hooks: camelCase          # Hooks (with use prefix)
-    utils: camelCase          # Utility files, helpers, etc
-  functions: camelCase
-  constants: UPPER_SNAKE_CASE
-  classes: PascalCase
-  hooks: useCamelCase
-
-# Code Style
-style:
-  quotes: single
-  semicolons: required
-  maxLineLength: 100
-  indent: 2
-  trailingComma: es5
-
-# Component Structure
-component_structure:
-  order:
-    - imports
-    - types/interfaces
-    - component declaration
-    - hooks/state
-    - effects
-    - handlers
-    - render helpers
-    - main render
-    - styles
-  stylesheet:
-    required: true
-    location: "adjacent"  # Forces StyleSheet.create in same file
-
-# Documentation
-documentation:
-  requires:
-    - class descriptions
-    - complex function descriptions
-    - game engine methods
-    - configuration objects
-    - state management decisions  # Added to document local vs context state choices
-
-# Game Engine Rules
-game_engine:
-  required_methods:
-    - handleThrow
-    - undoLastThrow
-    - getGameState
-  inheritance: must extend BaseGameEngine
-
-# Theme Usage
-theme:
-  colors: use theme.colors only
-  spacing: use theme.spacing only
-  borderRadius: use theme.borderRadius only
-  elevation: use theme.elevation only
-
-# Testing
-testing:
-  coverage: 80%
-  required:
-    - game engine logic
-    - scoring calculations
-    - turn management
-    - player state updates
-
-# Performance
-performance:
-  useMemo: required for expensive calculations
-  useCallback: required for handler functions
-  avoid_inline_styles: true
-  use_pure_components: preferred
-
-# Error Handling
-error_handling:
-  required:
-    - smartboard connection errors
-    - game state validation
-    - player input validation
-    - configuration validation
-  style:
-    location: dedicated error classes
-    format: consistent error messages
-    validation: early validation pattern
-
-# Git
-git:
-  ignore:
-    - node_modules/
-    - .expo/
-    - dist/
-    - web-build/
-    - *.log
-    - .env*
-
-# Bad Practice Prevention
-prevent:
-  inline_styles:
-    error: "Use StyleSheet.create() instead of inline styles"
-    except: ["dynamic_values_only"]
-    
-  var_keyword:
-    error: "Use const or let instead of var"
-    
-  magic_numbers:
-    error: "Move numeric constants to constants/ or theme/"
-    except: ["0", "1", "-1"]
-    
-  nested_callbacks:
-    max_depth: 2
-    recommend: "Use async/await pattern"
-
-# File Organization
-enforce_structure:
-  game_specific:
-    path: "components/game-specific/"
-    pattern: ["*Game*", "*Dartboard*"]
-    
-  styles:
-    location: "adjacent_stylesheet"
-    error: "Create separate stylesheet for component"
-
-
-# State Management
-state_management:
-  rules:
-    - local_state: UI-only changes
-    - context: shared game state
-    - redux: not used
-  documentation:
-    required: true
-    template: |
-      State Choice: [local/context]
-      Reason: [explanation]
+{
+  "project": {
+    "name": "Unicorn Smartboard iOS App",
+    "description": "iOS app for a unicorn smartboard detecting darts & sending bluetooth signals",
+    "note": "Always update .cursorrules with any changes to directory structure.",
+    "scoringNote": "Non-standard scoring allowed (e.g. doubles/triples in Around the World)."
+  },
+  "bestPractices": {
+    "react": [
+      "Use functional components with hooks",
+      "Use useMemo for heavy computations",
+      "Use useCallback for handlers",
+      "Prefer pure components",
+      "Local state for UI, context for shared state"
+    ],
+    "expo": [
+      "Utilize SDK features and APIs",
+      "Use asset system for images/fonts",
+      "Implement proper error handling",
+      "Use push notifications"
+    ]
+  },
+  "structure": {
+    "directories": {
+      "screens": [
+        "X01GameScreen.js",
+        "AroundTheWorldGameScreen.js",
+        "HalveItGameScreen.js",
+        "PostGameScreen.js"
+      ],
+      "components": {
+        "gameSpecific": {
+          "main": [
+            "X01Dartboard.js",
+            "DartDisplay.js",
+            "HitHistory.js",
+            "HalveItDartboard.js"
+          ],
+          "endGameStats": [
+            "X01EndGameStats.js",
+            "AroundTheWorldEndGameStats.js",
+            "HalveItEndGameStats.js"
+          ]
+        }
+      },
+      "gameEngine": [
+        "BaseGameEngine.js",
+        "X01GameEngine.js",
+        "AroundTheWorldGameEngine.js",
+        "HalveItGameEngine.js",
+        "TurnManager.js"
+      ],
+      "context": [
+        "DartboardContext.js",
+        "GameContext.js"
+      ],
+      "hooks": [
+        "useSmartboard.js",
+        "useGameState.js"
+      ],
+      "constants": [
+        "gameModes.js",
+        "scoring.js",
+        "boardSegments.js"
+      ],
+      "theme": [
+        "theme.js"
+      ],
+      "utils": [
+        "scoring.js",
+        "validation.js",
+        "formatting.js"
+      ],
+      "styles": [
+        "gameStyles.js"
+      ],
+      "errors": [
+        "GameErrors.js",
+        "ConnectionErrors.js"
+      ]
+    }
+  },
+  "style": {
+    "quotes": "single",
+    "semicolons": true,
+    "maxLineLength": 100,
+    "indent": 2,
+    "trailingComma": "es5",
+    "componentOrder": ["imports", "types", "hooks", "effects", "handlers", "render"],
+    "imports": ["react", "expo", "context", "screens", "components", "hooks", "constants", "utils", "styles", "types"],
+    "prevent": {
+      "inlineStyles": "Use StyleSheet.create (dynamic values allowed)",
+      "varKeyword": "Use let/const",
+      "magicNumbers": "Use constants (except 0, 1, -1)",
+      "nestedCallbacks": "Max depth 2, prefer async/await"
+    }
+  },
+  "naming": {
+    "components": "PascalCase",
+    "functions": "camelCase",
+    "constants": "UPPER_SNAKE_CASE"
+  },
+  "gameEngine": {
+    "inheritance": "extend BaseGameEngine",
+    "methods": ["handleThrow", "undoLastThrow", "getGameState"],
+    "testing": "80% coverage"
+  },
+  "theme": {
+    "required": ["colors", "spacing", "borderRadius", "elevation"]
+  },
+  "documentation": "Document classes, methods, configs, and state choices"
+}
