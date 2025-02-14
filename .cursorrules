@@ -77,7 +77,33 @@
       "errors": [
         "GameErrors.js",
         "ConnectionErrors.js"
-      ]
+      ],
+      "database": {
+        "root": [
+          "index.js",
+          "connection.js"
+        ],
+        "schema": [
+          "core.js",
+          "games.js",
+          "migrations.js"
+        ],
+        "models": {
+          "core": [
+            "players.js",
+            "matches.js",
+            "gameTypes.js"
+          ],
+          "games": [
+            "x01.js",
+            "aroundTheWorld.js",
+            "halveIt.js"
+          ]
+        },
+        "types": [
+          "database.ts"
+        ]
+      }
     }
   },
   "style": {

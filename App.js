@@ -10,6 +10,7 @@ import HalveItGameScreen from './screens/HalveItGameScreen';
 import { theme } from './theme';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import PostGameScreen from './screens/PostGameScreen';
+// import { initializeDatabase } from './database';
 
 const gameScreens = {
   [GAME_MODES.X01]: X01GameScreen,
@@ -21,20 +22,26 @@ export default function App() {
   const [gameConfig, setGameConfig] = useState(null);
   const [showPostGame, setShowPostGame] = useState(false);
   const [lastGameState, setLastGameState] = useState(null);
+  const [dbInitialized, setDbInitialized] = useState(false);
 
   useEffect(() => {
-    async function lockOrientation() {
+    async function initialize() {
       try {
+        // Initialize database
+        // await initializeDatabase();
+        // setDbInitialized(true);
+
+        // Lock orientation
         if (Platform.OS !== 'web') {
           await ScreenOrientation.lockAsync(
             ScreenOrientation.OrientationLock.LANDSCAPE_LEFT
           );
         }
       } catch (error) {
-        console.warn('Failed to lock orientation:', error);
+        console.error('Initialization error:', error);
       }
     }
-    lockOrientation();
+    initialize();
   }, []);
 
   const startGame = (config) => {
