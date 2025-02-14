@@ -6,33 +6,54 @@
     "orientation": "landscape",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.kfue.dartGame",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSBluetoothAlwaysUsageDescription": "This app uses Bluetooth to connect to the smartboard for dart scoring.",
+        "NSBluetoothPeripheralUsageDescription": "This app uses Bluetooth to connect to the smartboard for dart scoring.",
+        "UIBackgroundModes": [
+          "bluetooth-central"
+        ]
+      },
+      "newArchEnabled": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "newArchEnabled": true,
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT"
+      ],
+      "package": "com.kfue.dartGame"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-screen-orientation",
       [
-        "expo-screen-orientation",
+        "react-native-ble-plx",
         {
-          "initialOrientation": "LANDSCAPE_LEFT"
+          "isBackgroundEnabled": true,
+          "modes": [
+            "central"
+          ],
+          "bluetoothAlwaysPermission": "This app uses Bluetooth to connect to the smartboard for dart scoring."
         }
       ]
     ],
@@ -40,6 +61,12 @@
       "eas": {
         "projectId": "acbdf04a-b5e9-4b74-b4c0-dafe3a3ab9ab"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/acbdf04a-b5e9-4b74-b4c0-dafe3a3ab9ab"
     }
   }
 }

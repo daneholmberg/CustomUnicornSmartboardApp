@@ -1,10 +1,20 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import useSmartboard from '../useSmartboard';
+import useSmartboard, { CONNECTION_STATE } from '../useSmartboard';
 
 const SmartboardContext = createContext();
 
 export function SmartboardProvider({ children }) {
-  const { connected, throws, error, mockThrow } = useSmartboard();
+  const { 
+    connectionState,
+    connected,
+    connecting,
+    throws,
+    error,
+    mockThrow,
+    connect,
+    disconnect,
+    useMock
+  } = useSmartboard();
   const [lastThrow, setLastThrow] = useState(null);
 
   useEffect(() => {
@@ -15,10 +25,15 @@ export function SmartboardProvider({ children }) {
 
   return (
     <SmartboardContext.Provider value={{
+      connectionState,
       connected,
+      connecting,
       error,
       lastThrow,
       mockThrow,
+      connect,
+      disconnect,
+      useMock,
     }}>
       {children}
     </SmartboardContext.Provider>

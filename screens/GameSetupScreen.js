@@ -3,8 +3,10 @@ import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Keyboa
 import { GAME_MODES } from '../constants/gameModes';
 import { GAME_CONFIGS } from '../constants/gameConfigs';
 import { useOrientation } from '../hooks/useOrientation';
+import { useSmartboardContext } from '../context/SmartboardContext';
 import { theme } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
+import SmartboardConnection from '../components/SmartboardConnection';
 
 /**
  * State Choice: local
@@ -18,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
  */
 export default function GameSetupScreen({ onStartGame, onBack }) {
   const orientation = useOrientation();
+  const { connected } = useSmartboardContext();
   const [selectedGameMode, setSelectedGameMode] = useState(null);
   const [configValues, setConfigValues] = useState({});
   const [players, setPlayers] = useState([]);
@@ -130,6 +133,9 @@ export default function GameSetupScreen({ onStartGame, onBack }) {
       return (
         <View style={[styles.section, styles.rightSection]}>
           <Text style={styles.headerText}>Players</Text>
+          
+          <SmartboardConnection />
+          
           <View style={styles.playerInputContainer}>
             <TextInput 
               ref={inputRef}
@@ -143,8 +149,12 @@ export default function GameSetupScreen({ onStartGame, onBack }) {
               blurOnSubmit={false}
             />
             <TouchableOpacity 
-              style={styles.addButton}
+              style={[
+                styles.addButton,
+                !connected && styles.buttonDisabled
+              ]}
               onPress={handleAddPlayer}
+              disabled={!connected}
             >
               <Text style={styles.addButtonText}>Add Player</Text>
             </TouchableOpacity>
@@ -160,10 +170,16 @@ export default function GameSetupScreen({ onStartGame, onBack }) {
           
           {players.length > 0 && (
             <TouchableOpacity 
-              style={styles.startButton}
+              style={[
+                styles.startButton,
+                !connected && styles.buttonDisabled
+              ]}
               onPress={handleStartGame}
+              disabled={!connected}
             >
-              <Text style={styles.startButtonText}>Start Game</Text>
+              <Text style={styles.startButtonText}>
+                {connected ? 'Start Game' : 'Connect Smartboard to Start'}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -372,5 +388,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: theme.spacing.sm,
     fontWeight: '500',
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
 }); 
