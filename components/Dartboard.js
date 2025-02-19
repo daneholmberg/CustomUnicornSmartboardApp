@@ -2,7 +2,9 @@ import React, { useRef, useEffect, useState } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path, Circle, Text } from 'react-native-svg';
 import { useDartboardHighlight } from '../hooks/useDartboardHighlight';
+import { useSettings } from '../context/SettingsContext';
 
+// Numbers in standard orientation (20 at top)
 const NUMBERS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 
 const calculateBoardSize = (containerWidth, containerHeight) => {
@@ -14,9 +16,11 @@ const calculateBoardSize = (containerWidth, containerHeight) => {
 };
 
 function getSegmentFill(number, multiplier, highlightedSection, defaultColor, isEvenSegment, getHighlightInfo, targetNumbers) {
-  // First check if this was just hit
+
+  // First check if this was just hit (for any multiplier)
   if (highlightedSection?.score === number && highlightedSection?.multiplier === multiplier) {
-    return '#ffff00';
+    console.log(`Highlighting hit: number=${number}, multiplier=${multiplier}`);
+    return '#ffff00';  // Highlight yellow for any hit
   }
 
   // Check game-specific highlighting
@@ -40,7 +44,7 @@ function getSegmentFill(number, multiplier, highlightedSection, defaultColor, is
   }
   
   // For main segments (multiplier === 1)
-  return defaultColor === 'white' ? '#f4e4bc' : '#000000';
+  return isEvenSegment ? '#f4e4bc' : '#000000';  // Use defaultColor for consistency
 }
 
 export default function Dartboard({ 
@@ -49,6 +53,7 @@ export default function Dartboard({
   getHighlightInfo,
   targetNumbers = [],
 }) {
+  const { selectedNumber } = useSettings();
   const [boardSize, setBoardSize] = useState(300);
   const containerRef = useRef(null);
   const highlightedSection = useDartboardHighlight(lastHit);
@@ -72,11 +77,10 @@ export default function Dartboard({
   const BULL_OUTER_RADIUS = OUTER_RADIUS * 0.16;
   const BULL_INNER_RADIUS = OUTER_RADIUS * 0.08;
   const SEGMENT_ANGLE = 360 / NUMBERS.length;
-  const ROTATION_OFFSET = -9;
 
   const createSegmentPath = (startAngle, endAngle, innerRadius, outerRadius) => {
-    const startRadians = (startAngle + ROTATION_OFFSET - 90) * Math.PI / 180;
-    const endRadians = (endAngle + ROTATION_OFFSET - 90) * Math.PI / 180;
+    const startRadians = (startAngle - 9 - 90) * Math.PI / 180;
+    const endRadians = (endAngle - 9 - 90) * Math.PI / 180;
     
     const startOuterX = CENTER + outerRadius * Math.cos(startRadians);
     const startOuterY = CENTER + outerRadius * Math.sin(startRadians);
@@ -116,7 +120,10 @@ export default function Dartboard({
               getHighlightInfo,
               targetNumbers
             )}
-            onPress={() => onThrow({ score: number, multiplier: 1 })}
+            onPress={() => {
+              console.log(`Hit single ${number}`);
+              onThrow({ score: number, multiplier: 1 });
+            }}
           />
           
           {/* Double ring */}
@@ -131,7 +138,10 @@ export default function Dartboard({
               getHighlightInfo,
               targetNumbers
             )}
-            onPress={() => onThrow({ score: number, multiplier: 2 })}
+            onPress={() => {
+              console.log(`Hit double ${number}`);
+              onThrow({ score: number, multiplier: 2 });
+            }}
           />
           
           {/* Triple ring */}
@@ -146,7 +156,10 @@ export default function Dartboard({
               getHighlightInfo,
               targetNumbers
             )}
-            onPress={() => onThrow({ score: number, multiplier: 3 })}
+            onPress={() => {
+              console.log(`Hit triple ${number}`);
+              onThrow({ score: number, multiplier: 3 });
+            }}
           />
         </React.Fragment>
       );
@@ -158,20 +171,18 @@ export default function Dartboard({
       const midAngle = i * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
       const isEven = i % 2 === 0;
 
-      // Determine text color based on background.
-      // Only force black text if a single is hit; otherwise, use default color.
       let textColor;
       if (highlightedSection && highlightedSection.score === number && highlightedSection.multiplier === 1) {
         textColor = 'black'; // Black text on yellow highlight for a single hit.
       } else {
-        textColor = isEven ? 'black' : 'white'; // Default coloring: black for white sections, white for black sections.
+        textColor = isEven ? 'black' : 'white';
       }
 
       return (
         <Text
           key={`number-${number}`}
-          x={CENTER + (OUTER_RADIUS * 0.85) * Math.cos((midAngle + ROTATION_OFFSET - 90) * Math.PI / 180)}
-          y={CENTER + (OUTER_RADIUS * 0.85) * Math.sin((midAngle + ROTATION_OFFSET - 90) * Math.PI / 180)}
+          x={CENTER + (OUTER_RADIUS * 0.85) * Math.cos((midAngle - 9 - 90) * Math.PI / 180)}
+          y={CENTER + (OUTER_RADIUS * 0.85) * Math.sin((midAngle - 9 - 90) * Math.PI / 180)}
           fill={textColor}
           fontSize={boardSize * 0.04}
           textAnchor="middle"
@@ -205,7 +216,7 @@ export default function Dartboard({
             targetNumbers?.includes(25) ? '#b8f7b8' :
             (highlightedSection?.score === 25 && highlightedSection?.multiplier === 1) ? 
               '#ffff00' :
-            "#004400"  // Darker green to match the board
+            "#004400"
           }
           onPress={() => onThrow({ score: 25, multiplier: 1 })}
         />
@@ -219,12 +230,12 @@ export default function Dartboard({
             targetNumbers?.includes(25) ? '#b8f7b8' :
             (highlightedSection?.score === 25 && highlightedSection?.multiplier === 2) ?
               '#ffff00' :
-            "#8b0000"  // Deeper red to match the board
+            "#8b0000"
           }
           onPress={() => onThrow({ score: 25, multiplier: 2 })}
         />
 
-        {/* Render all numbers on top */}
+        {/* Render all numbers on top (static numbering) */}
         {renderNumbers()}
       </Svg>
     </View>

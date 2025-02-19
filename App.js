@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, StatusBar, Platform } from 'react-native';
 import { SmartboardProvider } from './context/SmartboardContext';
 import { DartboardProvider } from './context/DartboardContext';
+import { SettingsProvider } from './context/SettingsContext';
 import GameSetupScreen from './screens/GameSetupScreen';
+import SettingsScreen from './screens/SettingsScreen';
 import { GAME_MODES } from './constants/gameModes';
 import X01GameScreen from './screens/X01GameScreen';
 import AroundTheWorldGameScreen from './screens/AroundTheWorldGameScreen';
@@ -21,6 +23,7 @@ const gameScreens = {
 export default function App() {
   const [gameConfig, setGameConfig] = useState(null);
   const [showPostGame, setShowPostGame] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [lastGameState, setLastGameState] = useState(null);
   const [dbInitialized, setDbInitialized] = useState(false);
 
@@ -75,33 +78,47 @@ export default function App() {
 
   const CurrentGameScreen = gameConfig ? gameScreens[gameConfig.mode] : null;
 
-  if (showPostGame) {
-    return (
+  let currentScreen;
+  if (showSettings) {
+    currentScreen = (
+      <SettingsScreen onClose={() => setShowSettings(false)} />
+    );
+  } else if (showPostGame) {
+    currentScreen = (
       <PostGameScreen
         gameState={lastGameState}
         onNewGame={startNewGame}
         onRestartGame={restartWithSamePlayers}
       />
     );
+  } else if (CurrentGameScreen) {
+    currentScreen = (
+      <CurrentGameScreen 
+        gameConfig={gameConfig} 
+        onReset={resetGame}
+        onRestart={restartGame}
+        onEndGame={(gameState) => handleEndGame(gameState)}
+      />
+    );
+  } else {
+    currentScreen = (
+      <GameSetupScreen 
+        onStartGame={startGame}
+        onOpenSettings={() => setShowSettings(true)}
+      />
+    );
   }
 
   return (
-    <SmartboardProvider>
-      <DartboardProvider>
-        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          {CurrentGameScreen ? (
-            <CurrentGameScreen 
-              gameConfig={gameConfig} 
-              onReset={resetGame}
-              onRestart={restartGame}
-              onEndGame={(gameState) => handleEndGame(gameState)}
-            />
-          ) : (
-            <GameSetupScreen onStartGame={startGame} />
-          )}
-          <StatusBar hidden />
-        </View>
-      </DartboardProvider>
-    </SmartboardProvider>
+    <SettingsProvider>
+      <SmartboardProvider>
+        <DartboardProvider>
+          <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+            {currentScreen}
+            <StatusBar hidden />
+          </View>
+        </DartboardProvider>
+      </SmartboardProvider>
+    </SettingsProvider>
   );
 }

@@ -10,8 +10,12 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
+    "@react-native-async-storage/async-storage": "^1.24.0",
     "debug": "^4.3.2",
     "expo": "~52.0.6",
+    "expo-dev-client": "~5.0.11",
+    "expo-device": "~7.0.1",
+    "expo-screen-orientation": "~8.0.4",
     "expo-status-bar": "~2.0.1",
     "kcapp-sio-client": "github:kcapp/kcapp-sio-client#4f298b816e01e689d219abd55a6d4548bc2352f4",
     "react": "18.3.1",
@@ -19,15 +23,12 @@
     "react-native": "0.76.7",
     "react-native-ble-plx": "3.4.0",
     "react-native-svg": "15.8.0",
-    "react-native-web": "~0.19.13",
-    "expo-screen-orientation": "~8.0.4",
-    "expo-dev-client": "~5.0.11",
-    "expo-device": "~7.0.1"
+    "react-native-web": "~0.19.13"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "typescript": "^5.3.3",
-    "@types/react": "~18.3.12"
+    "@types/react": "~18.3.12",
+    "typescript": "^5.3.3"
   },
   "private": true
 }

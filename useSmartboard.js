@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 import smartboardMock from './smartboard/smartboard-mock';
 import Constants from 'expo-constants';
+import { useSettings } from './context/SettingsContext';
 
 // Initialize BLE manager only in production builds
 let bleManager;
@@ -43,6 +44,58 @@ export const CONNECTION_STATE = {
 // BLE UUIDs and characteristics
 const BLE_SERVICE_UUID = '0000fff0-0000-1000-8000-00805f9b34fb';
 let DART_CHARACTERISTIC_UUID = null; // Will be set after discovery
+
+// Add this helper function at module level
+const translateDartData = (rawScore, multiplier, boardRotation) => {
+  console.log('[translateDartData] Input:', { rawScore, multiplier, boardRotation });
+
+  // Handle player change signal
+  if (multiplier === 170 && rawScore === 85) {
+    console.log('[translateDartData] Detected player change signal');
+    return { type: 'playerChange' };
+  }
+
+  // Handle bullseye hits (no translation needed)
+  if (rawScore === 25 || rawScore === 50) {
+    console.log('[translateDartData] Bullseye hit - no translation needed:', 
+      { score: rawScore, multiplier: rawScore === 50 ? 2 : 1 });
+    return {
+      score: rawScore,
+      multiplier: rawScore === 50 ? 2 : 1
+    };
+  }
+
+  // Reference array for number positions, with 20 at index 0
+  const NUMBERS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+  
+  // Find the index of the raw score in the NUMBERS array
+  const rawIndex = NUMBERS.indexOf(rawScore);
+  if (rawIndex === -1) {
+    console.error('[translateDartData] Invalid raw score:', rawScore);
+    return { score: rawScore, multiplier };
+  }
+
+  // Apply the board rotation offset to get the actual number
+  // Add NUMBERS.length before modulo to handle negative boardRotation
+  const adjustedIndex = (rawIndex - boardRotation + NUMBERS.length) % NUMBERS.length;
+  const translatedScore = NUMBERS[adjustedIndex];
+
+  console.log('[translateDartData] Translation:', {
+    rawScore,
+    rawIndex,
+    boardRotation,
+    adjustedIndex,
+    translatedScore,
+    multiplier,
+    explanation: `Raw ${rawScore} at position ${rawIndex}, shifted by rotation ${boardRotation} = position ${adjustedIndex} which is ${translatedScore}`,
+    NUMBERS_slice: NUMBERS.slice(0, 5) // Log first few numbers for debugging
+  });
+
+  return {
+    score: translatedScore,
+    multiplier
+  };
+};
 
 /**
  * Get the appropriate smartboard implementation
@@ -95,6 +148,12 @@ export default function useSmartboard() {
   const attemptsRef = useRef(0);
   const MAX_RECONNECT_ATTEMPTS = 3;
   const RECONNECT_DELAY = 2000; // 2 seconds
+  const { boardRotation } = useSettings();
+  const boardRotationRef = useRef(boardRotation);
+
+  useEffect(() => {
+    console.log('[useSmartboard] boardRotation changed to:', boardRotation);
+  }, [boardRotation]);
 
   // Reset attempts when device changes
   useEffect(() => {
@@ -112,6 +171,12 @@ export default function useSmartboard() {
       }
     };
   }, [monitorSubscription]);
+
+  // Update the ref when boardRotation changes
+  useEffect(() => {
+    boardRotationRef.current = boardRotation;
+    console.log('[useSmartboard] Updated boardRotationRef to:', boardRotationRef.current);
+  }, [boardRotation]);
 
   // Setup monitoring for a device
   const setupMonitoring = useCallback(async (discoveredDevice) => {
@@ -174,7 +239,6 @@ export default function useSmartboard() {
 
           if (characteristic?.value) {
             try {
-              // Decode base64 to byte array
               const base64 = characteristic.value;
               const binaryString = atob(base64);
               const bytes = new Uint8Array(binaryString.length);
@@ -185,27 +249,17 @@ export default function useSmartboard() {
               const rawValue = bytes[0];
               const multiplier = bytes[1];
               
-              // Check for player change signal
-              if (multiplier === 170 && rawValue === 85) {
+              const dartData = translateDartDataUsingRef(rawValue, multiplier);
+              
+              if (dartData.type === 'playerChange') {
                 console.log('Player change signal received');
-                // You might want to handle player changes here
                 return;
               }
 
-              // Calculate the actual dart score
-              const dartData = {
-                score: rawValue,
-                multiplier: multiplier === 2 ? 2 : multiplier === 3 ? 3 : 1
-              };
-              
               console.log('Received dart throw:', dartData);
               setThrows(prev => [...prev, dartData]);
             } catch (parseError) {
-              console.error('Error parsing dart data:', {
-                error: parseError,
-                rawValue: characteristic.value,
-                errorDetails: parseError.stack
-              });
+              console.error('Error parsing dart data:', parseError);
             }
           }
         }
@@ -232,14 +286,18 @@ export default function useSmartboard() {
         setConnectionState(CONNECTION_STATE.DISCONNECTED);
       }
     }
-  }, [monitorSubscription]);
+  }, [translateDartData]); // Add translateDartData as dependency
 
   // Callback for manual mock throws
   const mockThrow = useCallback(() => {
     if (connectionState === CONNECTION_STATE.CONNECTED && useMock) {
-      setThrows(prev => [...prev, generateMockThrow()]);
+      const rawScore = Math.floor(Math.random() * 20) + 1;
+      const multiplier = Math.floor(Math.random() * 3) + 1;
+      console.log('[useSmartboard] mockThrow current boardRotation:', boardRotationRef.current);
+      const dartData = translateDartDataUsingRef(rawScore, multiplier);
+      setThrows(prev => [...prev, dartData]);
     }
-  }, [connectionState, useMock]);
+  }, [connectionState, useMock]); // Remove boardRotation from dependencies
 
   // Connect to the smartboard (mock or real)
   const connect = useCallback(async (useRealBoard = false) => {
@@ -462,6 +520,54 @@ export default function useSmartboard() {
       }
     };
   }, [device]);
+
+  // Add this helper inside the hook
+  const translateDartDataUsingRef = (rawScore, multiplier) => {
+    const currentRotation = boardRotationRef.current;
+    const NUMBERS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+    
+    // Handle special cases first
+    if (multiplier === 170 && rawScore === 85) {
+      return { type: 'playerChange' };
+    }
+
+    if (rawScore === 25 || rawScore === 50) {
+      return {
+        score: rawScore,
+        multiplier: rawScore === 50 ? 2 : 1
+      };
+    }
+
+    // Find the index of the raw score in the NUMBERS array
+    const rawIndex = NUMBERS.indexOf(rawScore);
+    if (rawIndex === -1) {
+      console.error('[translateDartDataUsingRef] Invalid raw score:', rawScore);
+      return { score: rawScore, multiplier };
+    }
+
+    // When the board is physically rotated, the numbers are shifted.
+    // If we rotate so 6 is at the top (offset 5), then:
+    // - A hit on what looks like position 0 is actually position 5
+    // - So we need to add the rotation to find the actual position hit
+    const adjustedIndex = (rawIndex + currentRotation) % NUMBERS.length;
+    const translatedScore = NUMBERS[adjustedIndex];
+
+    console.log('[translateDartDataUsingRef] Translation:', {
+      rawScore,
+      rawIndex,
+      boardRotation: currentRotation,
+      adjustedIndex,
+      translatedScore,
+      multiplier,
+      explanation: `Raw ${rawScore} at position ${rawIndex}, adding rotation ${currentRotation} = position ${adjustedIndex} which is ${translatedScore}`,
+      NUMBERS_slice: NUMBERS.slice(0, 5)
+    });
+
+    return {
+      score: translatedScore,
+      multiplier
+    };
+  };
 
   return { 
     connectionState,

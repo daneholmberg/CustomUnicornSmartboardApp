@@ -17,8 +17,9 @@ import SmartboardConnection from '../components/SmartboardConnection';
  * @param {Object} props
  * @param {Function} props.onStartGame - Callback fired when game setup is complete
  * @param {Function} props.onBack - Callback to navigate back to home screen
+ * @param {Function} props.onOpenSettings - Callback to open settings
  */
-export default function GameSetupScreen({ onStartGame, onBack }) {
+export default function GameSetupScreen({ onStartGame, onBack, onOpenSettings }) {
   const orientation = useOrientation();
   const { connected } = useSmartboardContext();
   const [selectedGameMode, setSelectedGameMode] = useState(null);
@@ -190,6 +191,16 @@ export default function GameSetupScreen({ onStartGame, onBack }) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Game Setup</Text>
+        <TouchableOpacity 
+          style={styles.settingsButton} 
+          onPress={onOpenSettings}
+        >
+          <Ionicons name="settings-outline" size={24} color={theme.colors.text} />
+        </TouchableOpacity>
+      </View>
+      
       {selectedGameMode && (
         <TouchableOpacity 
           style={styles.backButton} 
@@ -391,5 +402,22 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.5,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.large,
+    paddingHorizontal: theme.spacing.medium,
+  },
+  settingsButton: {
+    padding: theme.spacing.small,
+    borderRadius: theme.borderRadius.medium,
+    backgroundColor: theme.colors.surface,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
   },
 }); 
