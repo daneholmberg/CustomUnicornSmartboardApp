@@ -2,96 +2,137 @@ import { X01GameEngine } from '../../gameEngine/X01GameEngine';
 
 describe('X01GameEngine', () => {
   let gameEngine;
-  const mockPlayer = {
-    id: 1,
-    name: 'Test Player',
-    score: 301,
+  
+  // Common test data
+  const createMockPlayer = (id = 1, name = 'Test Player', score = 301) => ({
+    id,
+    name,
+    score,
     stats: {},
-  };
-
-  const mockPlayers = [
-    { id: 1, name: 'Player 1', score: 301, stats: {} },
-    { id: 2, name: 'Player 2', score: 301, stats: {} },
-  ];
-
-  describe('Game Initialization', () => {
-    it('should initialize with valid X01 scores', () => {
-      const scores = [301, 501];
-      scores.forEach(score => {
-        const engine = new X01GameEngine({
-          players: [{ ...mockPlayer, score }],
-          selectedScore: score,
-        });
-        expect(engine.turnManager.getCurrentPlayer().score).toBe(score);
-      });
-    });
-
-    it('should initialize with multiple players', () => {
-      const engine = new X01GameEngine({
-        players: mockPlayers,
-        selectedScore: 301,
-      });
-      expect(engine.turnManager.players.length).toBe(2);
-      expect(engine.turnManager.currentPlayerIndex).toBe(0);
-    });
   });
 
-  describe('Score Handling', () => {
+  const throwDartsToScore = (engine, targetScore) => {
+    // First, get close to but not under the target score using triples
+    while (engine.turnManager.getCurrentPlayer().score > targetScore + 60) {
+      engine.handleThrow({ score: 20, multiplier: 3 }); // 60 points per throw
+    }
+    
+    // If we're not at the start of a turn, throw zeros to complete it
+    while (engine.turnManager.throwsThisTurn > 0) {
+      engine.handleThrow({ score: 0, multiplier: 1 }); // Use 0 instead of 1 to not affect score
+    }
+    
+    // Now we're at the start of a fresh turn
+    // Calculate exact points needed to reach target
+    const currentScore = engine.turnManager.getCurrentPlayer().score;
+    const remainingPoints = currentScore - targetScore;
+    
+    if (remainingPoints > 0) {
+      // Throw exactly what we need to reach the target score
+      engine.handleThrow({ score: remainingPoints, multiplier: 1 });
+      
+      // Complete this turn with zeros
+      while (engine.turnManager.throwsThisTurn > 0) {
+        engine.handleThrow({ score: 0, multiplier: 1 }); // Use 0 instead of 1 to not affect score
+      }
+    }
+  };
+
+  describe('Initialization', () => {
+    describe('with valid configurations', () => {
+      it('should initialize with 301', () => {
+        const engine = new X01GameEngine({
+          players: [createMockPlayer()],
+          selectedScore: 301,
+        });
+        expect(engine.turnManager.getCurrentPlayer().score).toBe(301);
+      });
+
+      it('should initialize with 501', () => {
+        const engine = new X01GameEngine({
+          players: [createMockPlayer(1, 'Test Player', 501)],
+          selectedScore: 501,
+        });
+        expect(engine.turnManager.getCurrentPlayer().score).toBe(501);
+      });
+
+      it('should initialize with multiple players', () => {
+        const engine = new X01GameEngine({
+          players: [
+            createMockPlayer(1, 'Player 1'),
+            createMockPlayer(2, 'Player 2'),
+          ],
+          selectedScore: 301,
+        });
+        expect(engine.turnManager.players.length).toBe(2);
+        expect(engine.turnManager.currentPlayerIndex).toBe(0);
+      });
+    });
+
+    // TODO: Add invalid configuration tests
+  });
+
+  describe('Scoring', () => {
     beforeEach(() => {
       gameEngine = new X01GameEngine({
-        players: [mockPlayer],
+        players: [createMockPlayer()],
         selectedScore: 301,
       });
     });
 
-    it('should handle single number scoring', () => {
-      const dart = { score: 20, multiplier: 1 };
-      gameEngine.handleThrow(dart);
-      expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(281);
+    describe('basic scoring', () => {
+      it('should handle single numbers (1-20)', () => {
+        gameEngine.handleThrow({ score: 20, multiplier: 1 });
+        expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(281);
+      });
+
+      it('should handle doubles (2x)', () => {
+        gameEngine.handleThrow({ score: 20, multiplier: 2 });
+        expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(261);
+      });
+
+      it('should handle triples (3x)', () => {
+        gameEngine.handleThrow({ score: 20, multiplier: 3 });
+        expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(241);
+      });
     });
 
-    it('should handle double scoring', () => {
-      const dart = { score: 20, multiplier: 2 };
-      gameEngine.handleThrow(dart);
-      expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(261);
+    describe('special scoring', () => {
+      it('should handle bull (25)', () => {
+        gameEngine.handleThrow({ score: 25, multiplier: 1 });
+        expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(276);
+      });
+
+      it('should handle double bull (50)', () => {
+        gameEngine.handleThrow({ score: 25, multiplier: 2 });
+        expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(251);
+      });
     });
 
-    it('should handle triple scoring', () => {
-      const dart = { score: 20, multiplier: 3 };
-      gameEngine.handleThrow(dart);
-      expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(241);
-    });
+    describe('turn scoring', () => {
+      it('should accumulate turn score correctly', () => {
+        const darts = [
+          { score: 20, multiplier: 1 }, // 20
+          { score: 19, multiplier: 1 }, // 19
+        ];
 
-    it('should handle bull (25) and double bull (50)', () => {
-      const bull = { score: 25, multiplier: 1 };
-      const doubleBull = { score: 25, multiplier: 2 };
-      
-      gameEngine.handleThrow(bull);
-      expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(276);
-      
-      gameEngine.handleThrow(doubleBull);
-      expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(226);
-    });
+        darts.forEach(dart => gameEngine.handleThrow(dart));
+        expect(gameEngine.turnManager.currentTurnScore).toBe(39);
+      });
 
-    it('should track turn total correctly', () => {
-      const darts = [
-        { score: 20, multiplier: 3 }, // 60
-        { score: 19, multiplier: 3 }, // 57
-        { score: 18, multiplier: 1 }, // 18
-      ];
+      it('should track turn score across all three darts', () => {
+        const darts = [
+          { score: 20, multiplier: 3 }, // 60
+          { score: 19, multiplier: 3 }, // 57
+          { score: 18, multiplier: 1 }, // 18
+        ];
 
-      const expectedScores = [60, 117, 135]; // Expected running totals after each throw
-      
-      darts.forEach((dart, index) => {
-        gameEngine.handleThrow(dart);
-        
-        if (index === 2) {
-          // For the last throw, check the previousTurnScore since the turn will have ended
-          expect(gameEngine.turnManager.previousTurnScore).toBe(expectedScores[index]);
-        } else {
-          expect(gameEngine.turnManager.currentTurnScore).toBe(expectedScores[index]);
-        }
-        expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(301 - expectedScores[index]);
+        darts.forEach((dart, index) => {
+          gameEngine.handleThrow(dart);
+          const expectedScore = index === 2 ? 0 : [60, 117][index];
+          expect(gameEngine.turnManager.currentTurnScore).toBe(expectedScore);
+        });
+        expect(gameEngine.turnManager.previousTurnScore).toBe(135);
       });
     });
   });
@@ -99,28 +140,31 @@ describe('X01GameEngine', () => {
   describe('Turn Management', () => {
     beforeEach(() => {
       gameEngine = new X01GameEngine({
-        players: mockPlayers,
+        players: [
+          createMockPlayer(1, 'Player 1'),
+          createMockPlayer(2, 'Player 2'),
+        ],
         selectedScore: 301,
       });
     });
 
-    it('should progress through 3 darts per turn', () => {
+    it('should track throws within a turn', () => {
       const dart = { score: 20, multiplier: 1 };
       
-      gameEngine.handleThrow(dart); // First dart
+      gameEngine.handleThrow(dart);
       expect(gameEngine.turnManager.throwsThisTurn).toBe(1);
       
-      gameEngine.handleThrow(dart); // Second dart
+      gameEngine.handleThrow(dart);
       expect(gameEngine.turnManager.throwsThisTurn).toBe(2);
       
-      gameEngine.handleThrow(dart); // Third dart
-      expect(gameEngine.turnManager.throwsThisTurn).toBe(0); // Reset for next player
+      gameEngine.handleThrow(dart);
+      expect(gameEngine.turnManager.throwsThisTurn).toBe(0);
     });
 
-    it('should switch players after 3 darts', () => {
+    it('should switch players after three darts', () => {
       const dart = { score: 20, multiplier: 1 };
       
-      // Throw 3 darts
+      // Complete first player's turn
       for (let i = 0; i < 3; i++) {
         gameEngine.handleThrow(dart);
       }
@@ -132,181 +176,74 @@ describe('X01GameEngine', () => {
     it('should rotate through all players', () => {
       const dart = { score: 20, multiplier: 1 };
       
-      // Complete first player's turn
-      for (let i = 0; i < 3; i++) {
+      // Complete two full rounds
+      for (let i = 0; i < 6; i++) {
         gameEngine.handleThrow(dart);
       }
-      expect(gameEngine.turnManager.currentPlayerIndex).toBe(1);
       
-      // Complete second player's turn
-      for (let i = 0; i < 3; i++) {
-        gameEngine.handleThrow(dart);
-      }
       expect(gameEngine.turnManager.currentPlayerIndex).toBe(0);
     });
   });
 
   describe('Game End Conditions', () => {
     beforeEach(() => {
-      // Start with 301
       gameEngine = new X01GameEngine({
-        players: [mockPlayer],
+        players: [createMockPlayer()],
         selectedScore: 301,
       });
-      
-      // Throw darts to get to 40
-      const dartsToGet40 = [
-        { score: 20, multiplier: 3 }, // 60
-        { score: 20, multiplier: 2 }, // 60
-        { score: 20, multiplier: 1 }, // 57
-        { score: 19, multiplier: 3 }, // 57
-        { score: 20, multiplier: 3 }, // 60
-        { score: 12, multiplier: 2 }, // 14
-      ];
-      
-      dartsToGet40.forEach(dart => {
-        if (gameEngine.turnManager.getCurrentPlayer().score > 40) {
-          gameEngine.handleThrow(dart);
-        }
-      });
     });
 
-    it('should handle winning with exact score', () => {
-      expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(40);
-      const dart = { score: 20, multiplier: 2 }; // Double 20
-      gameEngine.handleThrow(dart);
-      expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(0);
-      expect(gameEngine.turnManager.getCurrentPlayer().completed).toBe(true);
-      expect(gameEngine.turnManager.isGameOver()).toBe(true);
-    });
-
-    it('should prevent score going below zero', () => {
-      // Get to score 20 first
-      gameEngine.handleThrow({ score: 20, multiplier: 1 }); // Now at 20
-      
-      const dart = { score: 20, multiplier: 2 }; // Score of 40
-      gameEngine.handleThrow(dart);
-      expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(40); // Should reset to original score
-    });
-  });
-
-  describe('Bust Scenarios', () => {
-    beforeEach(() => {
-      // Start with 301
-      gameEngine = new X01GameEngine({
-        players: [mockPlayer],
-        selectedScore: 301,
-      });
-      
-      // Throw darts to get to 40
-      const dartsToGet40 = [
-        { score: 20, multiplier: 3 }, // 60
-        { score: 20, multiplier: 3 }, // 60
-        { score: 19, multiplier: 3 }, // 57
-        { score: 12, multiplier: 1 }, // 12
-        { score: 20, multiplier: 3 }, // 60
-        { score: 12, multiplier: 1 }, // 12
+    describe('winning', () => {
+      it('should handle winning with exact score', () => {
+        // Get to 40 first
+        throwDartsToScore(gameEngine, 40);
         
-      ];
-      
-      dartsToGet40.forEach(dart => {
-        gameEngine.handleThrow(dart);
+        // Verify we're at 40
+        expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(40);
+        
+        // Win with double 20
+        gameEngine.handleThrow({ score: 20, multiplier: 2 });
+        
+        const player = gameEngine.turnManager.getCurrentPlayer();
+        expect(player.score).toBe(0);
+        expect(player.completed).toBe(true);
+        expect(gameEngine.turnManager.isGameOver()).toBe(true);
       });
     });
 
-    it('should bust when score would go below zero', () => {
-      expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(40);
-      const dart = { score: 20, multiplier: 3 }; // 60 points
-      gameEngine.handleThrow(dart);
-      expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(40); // Original score
-      expect(gameEngine.turnManager.currentTurnScore).toBe(0); // Reset turn score
-    });
-
-    it('should reset turn score after bust', () => {
-      expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(40);
-      const darts = [
-        { score: 20, multiplier: 1 }, // 20 points
-        { score: 20, multiplier: 2 }, // 40 points - should bust
-      ];
-
-      darts.forEach(dart => gameEngine.handleThrow(dart));
-      expect(gameEngine.turnManager.currentTurnScore).toBe(0);
-    });
-
-    it('should switch to next player after bust in multiplayer game', () => {
-      gameEngine = new X01GameEngine({
-        players: mockPlayers,
-        selectedScore: 301,
+    describe('busting', () => {
+      it('should bust when score would go below zero', () => {
+        // Get to 40 first
+        throwDartsToScore(gameEngine, 40);
+        
+        // Verify we're at 40
+        expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(40);
+        
+        // Try to score 60 (should bust)
+        gameEngine.handleThrow({ score: 20, multiplier: 3 });
+        
+        // Score should remain at 40 after bust
+        console.log(gameEngine.turnManager.getCurrentPlayer().score);
+        expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(40);
+        expect(gameEngine.turnManager.currentTurnScore).toBe(0);
       });
 
-      const dart = { score: 20, multiplier: 3 }; // 60 points
-      for (let i = 0; i < 3; i++) {
-        gameEngine.handleThrow(dart);
-      }
-      
-      expect(gameEngine.turnManager.currentPlayerIndex).toBe(1);
+      it('should reset turn score after bust', () => {
+        // Get to 40 first
+        throwDartsToScore(gameEngine, 40);
+        
+        // Verify we're at 40
+        expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(40);
+        
+        const darts = [
+          { score: 20, multiplier: 1 }, // 20 points
+          { score: 20, multiplier: 2 }, // 40 points - should bust
+        ];
+
+        darts.forEach(dart => gameEngine.handleThrow(dart));
+        expect(gameEngine.turnManager.currentTurnScore).toBe(0);
+        expect(gameEngine.turnManager.getCurrentPlayer().score).toBe(40);
+      });
     });
   });
-
-  describe('handleThrow', () => {
-    beforeEach(() => {
-      gameEngine = new X01GameEngine({
-        players: [mockPlayer],
-        selectedScore: 301,
-      });
-    });
-    it('should subtract score when dart hits a number', () => {
-      const dart = {
-        score: 20,
-        multiplier: 1,
-      };
-      console.log(gameEngine.turnManager.throwsThisTurn);
-
-      gameEngine.handleThrow(dart);
-      
-      const currentPlayer = gameEngine.turnManager.getCurrentPlayer();
-      expect(currentPlayer.score).toBe(281); // 301 - 20
-    });
-
-    it('should move to next dart for the same player after second throw. We threw 1 dart in the setup', () => {
-      const dart = {
-        score: 20,
-        multiplier: 1,
-      };
-      console.log(gameEngine.turnManager.throwsThisTurn);
-      gameEngine.handleThrow(dart);
-      console.log(gameEngine.turnManager.throwsThisTurn);
-      
-      expect(gameEngine.turnManager.throwsThisTurn).toBe(1);
-      expect(gameEngine.turnManager.currentPlayerIndex).toBe(0); // Same player
-    });
-
-    it('should handle triple hits correctly', () => {
-      const dart = {
-        score: 20,
-        multiplier: 3,
-      };
-
-      gameEngine.handleThrow(dart);
-      
-      const currentPlayer = gameEngine.turnManager.getCurrentPlayer();
-      expect(currentPlayer.score).toBe(241); // 301 - (20 * 3)
-    });
-
-    it('should track turn score correctly', () => {
-      const dart1 = {
-        score: 20,
-        multiplier: 1,
-      };
-      const dart2 = {
-        score: 19,
-        multiplier: 1,
-      };
-
-      gameEngine.handleThrow(dart1);
-      gameEngine.handleThrow(dart2);
-      
-      expect(gameEngine.turnManager.currentTurnScore).toBe(39);
-    });
-  });
-}); 
+});
