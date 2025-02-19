@@ -15,6 +15,7 @@ export class X01TurnManager extends TurnManager {
     }
     
     this.currentTurnScore = 0;
+    this.previousTurnScore = 0;
     this.startOfTurnScore = this.validatePlayerScore(players[0].score);
   }
 
@@ -36,6 +37,7 @@ export class X01TurnManager extends TurnManager {
    * Advances to next player and resets turn-specific scores
    */
   nextPlayer() {
+    this.previousTurnScore = this.currentTurnScore;
     super.nextPlayer();
     this.currentTurnScore = 0;
     const currentPlayer = this.getCurrentPlayer();
@@ -62,6 +64,7 @@ export class X01TurnManager extends TurnManager {
     return {
       ...super.getState(),
       currentTurnScore: this.currentTurnScore,
+      previousTurnScore: this.previousTurnScore,
       startOfTurnScore: this.startOfTurnScore,
     };
   }

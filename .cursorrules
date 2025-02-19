@@ -3,7 +3,8 @@
     "name": "Unicorn Smartboard iOS App",
     "description": "iOS app for a unicorn smartboard detecting darts & sending bluetooth signals",
     "note": "Always update .cursorrules with any changes to directory structure.",
-    "scoringNote": "Non-standard scoring allowed (e.g. doubles/triples in Around the World)."
+    "scoringNote": "Non-standard scoring allowed (e.g. doubles/triples in Around the World).",
+    "packageManager": "yarn"
   },
   "bestPractices": {
     "react": [
@@ -112,8 +113,26 @@
     "maxLineLength": 100,
     "indent": 2,
     "trailingComma": "es5",
-    "componentOrder": ["imports", "types", "hooks", "effects", "handlers", "render"],
-    "imports": ["react", "expo", "context", "screens", "components", "hooks", "constants", "utils", "styles", "types"],
+    "componentOrder": [
+      "imports",
+      "types",
+      "hooks",
+      "effects",
+      "handlers",
+      "render"
+    ],
+    "imports": [
+      "react",
+      "expo",
+      "context",
+      "screens",
+      "components",
+      "hooks",
+      "constants",
+      "utils",
+      "styles",
+      "types"
+    ],
     "prevent": {
       "inlineStyles": "Use StyleSheet.create (dynamic values allowed)",
       "varKeyword": "Use let/const",
@@ -128,11 +147,20 @@
   },
   "gameEngine": {
     "inheritance": "extend BaseGameEngine",
-    "methods": ["handleThrow", "undoLastThrow", "getGameState"],
+    "methods": [
+      "handleThrow",
+      "undoLastThrow",
+      "getGameState"
+    ],
     "testing": "80% coverage"
   },
   "theme": {
-    "required": ["colors", "spacing", "borderRadius", "elevation"]
+    "required": [
+      "colors",
+      "spacing",
+      "borderRadius",
+      "elevation"
+    ]
   },
   "documentation": "Document classes, methods, configs, and state choices"
 }

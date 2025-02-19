@@ -1,0 +1,36 @@
+{
+  "name": "dartgame",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~52.0.6",
+    "react": "18.2.0",
+    "react-native": "0.76.0",
+    "@expo/metro-runtime": "~3.1.1",
+    "expo-status-bar": "~1.11.1",
+    "expo-dev-client": "~3.3.7",
+    "expo-device": "~5.9.3",
+    "expo-screen-orientation": "~6.4.1",
+    "debug": "^4.3.2",
+    "react-native-ble-plx": "^3.3.0",
+    "react-native-svg": "14.1.0",
+    "react-native-web": "~0.19.6",
+    "react-dom": "18.2.0",
+    "kcapp-sio-client": "github:kcapp/kcapp-sio-client#4f298b816e01e689d219abd55a6d4548bc2352f4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~18.2.45",
+    "typescript": "^5.3.3"
+  },
+  "pendingAll": {
+    "expo-sqlite": "~13.2.1"
+  },
+  "private": true
+}

@@ -71,45 +71,54 @@ export class X01GameEngine extends BaseGameEngine {
    */
   handleThrow(dart) {
     const currentPlayer = this.turnManager.getCurrentPlayer();
-    const currentTurnScore = this.turnManager.currentTurnScore;
+    const throwValue = this.calculateThrowValue(dart);
     const isLastThrowOfTurn = this.turnManager.willBeEndOfTurn();
 
+    // Record the throw in history before any modifications
     this.throwHistory.push({
       dart,
       playerIndex: this.turnManager.currentPlayerIndex,
       throwsThisTurn: this.turnManager.throwsThisTurn,
       meta: {
-        turnScore: currentTurnScore,
+        turnScore: this.turnManager.currentTurnScore,
         playerScore: currentPlayer.score,
         stats: { ...currentPlayer.stats },
         wasLastThrowOfTurn: isLastThrowOfTurn
       },
     });
 
+    // Update hit history
     if (this.lastHit) {
       this.hitHistory.push(this.lastHit);
     }
     this.lastHit = dart;
-    this.turnManager.addDart(dart);
-    
-    const throwValue = this.calculateThrowValue(dart);
-    
+
+    // Check if this throw would be valid
     if (!this.isValidScore(currentPlayer.score - throwValue)) {
       this.handleBust(currentPlayer);
       return;
     }
 
+    // Apply the throw only if it's valid
     this.applyThrow(currentPlayer, throwValue);
     
+    // Check for win condition
     if (currentPlayer.score === 0) {
       this.handleWin(currentPlayer);
       return;
     }
 
+    // Update game state
     this.updateGameMessage(currentPlayer, throwValue);
-    this.updatePlayerStats(currentPlayer, isLastThrowOfTurn);
     
-    this.turnManager.incrementThrows();
+    // Update stats and handle turn transition
+    if (isLastThrowOfTurn) {
+      this.updatePlayerStats(currentPlayer, true);
+      this.turnManager.nextPlayer();
+    } else {
+      this.updatePlayerStats(currentPlayer, false);
+      this.turnManager.throwsThisTurn++;
+    }
   }
 
   /**
@@ -140,6 +149,7 @@ export class X01GameEngine extends BaseGameEngine {
   handleBust(player) {
     this.gameMessage = `${player.name} Bust! Turn ends.`;
     player.score = this.turnManager.startOfTurnScore;
+    this.turnManager.currentTurnScore = 0; // Reset turn score before moving to next player
     this.turnManager.nextPlayer();
   }
 
