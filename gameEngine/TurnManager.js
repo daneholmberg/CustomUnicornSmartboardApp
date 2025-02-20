@@ -22,7 +22,7 @@ export class TurnManager {
 
   /**
    * Finds the next active (non-completed) player
-   * @returns {number} Index of next active player
+   * @returns {number} Index of next active player, or -1 if no active players remain
    */
   findNextActivePlayer() {
     const activePlayers = this.players
@@ -30,7 +30,7 @@ export class TurnManager {
       .filter(({ player }) => !player.completed);
 
     if (activePlayers.length === 0) {
-      return this.currentPlayerIndex;
+      return -1; // No more active players
     }
 
     const nextActive = activePlayers.find(({ index }) => index > this.currentPlayerIndex);
@@ -45,7 +45,12 @@ export class TurnManager {
       this.lastTurnDarts = [...this.currentTurnDarts];
       this.lastTurnTimestamp = Date.now();
     }
-    this.currentPlayerIndex = this.findNextActivePlayer();
+    const nextIndex = this.findNextActivePlayer();
+    if (nextIndex === -1) {
+      // Game is over, no more active players
+      return;
+    }
+    this.currentPlayerIndex = nextIndex;
     this.throwsThisTurn = 0;
     this.currentTurnDarts = [];
   }
@@ -130,5 +135,9 @@ export class TurnManager {
       this.lastTurnDarts = [];
       this.lastTurnTimestamp = null;
     }
+  }
+
+  updatePlayers(newPlayers) {
+    this.players = newPlayers;
   }
 } 

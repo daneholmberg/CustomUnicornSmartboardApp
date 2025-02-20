@@ -18,7 +18,7 @@ export class X01GameEngine extends BaseGameEngine {
   constructor(config) {
     const selectedScore = config.selectedScore || 301;
     
-    // Initialize players before super call
+    // Create deep copies of players to ensure isolation
     const initializedPlayers = config.players?.map(player => ({
       ...player,
       score: selectedScore,
@@ -32,12 +32,15 @@ export class X01GameEngine extends BaseGameEngine {
         rounds75Plus: 0,
         rounds100Plus: 0,
         rounds120Plus: 0,
-        first3Rounds: [], // Track first 3 rounds for 9-dart average
+        first3Rounds: [],
       }
     }));
 
     // Call super first
     super({ ...config, players: initializedPlayers });
+
+    // Store original scores for reference
+    this.originalScores = initializedPlayers.map(p => p.score);
 
     // Now we can use 'this' safely
     if (!config?.players?.length) {
@@ -70,7 +73,19 @@ export class X01GameEngine extends BaseGameEngine {
    * @param {DartThrow} dart - The dart throw data
    */
   handleThrow(dart) {
+    // If all players have completed, ignore any further throws
+    if (this.turnManager.isGameOver()) {
+      return;
+    }
+
     const currentPlayer = this.turnManager.getCurrentPlayer();
+    
+    // If this player has completed, try to move to next player
+    if (currentPlayer.completed) {
+      this.turnManager.nextPlayer();
+      return;
+    }
+
     const throwValue = this.calculateThrowValue(dart);
     const isLastThrowOfTurn = this.turnManager.willBeEndOfTurn();
 
@@ -147,9 +162,17 @@ export class X01GameEngine extends BaseGameEngine {
    * @param {Player} player 
    */
   handleBust(player) {
+    // Reset to start of turn score using original score reference
+    const playerIndex = this.turnManager.currentPlayerIndex;
+    const updatedPlayers = [...this.turnManager.players];
+    updatedPlayers[playerIndex] = {
+      ...player,
+      score: this.turnManager.startOfTurnScore
+    };
+    
+    this.turnManager.updatePlayers(updatedPlayers);
     this.gameMessage = `${player.name} Bust! Turn ends.`;
-    player.score = this.turnManager.startOfTurnScore;
-    this.turnManager.currentTurnScore = 0; // Reset turn score before moving to next player
+    this.turnManager.currentTurnScore = 0;
     this.turnManager.nextPlayer();
   }
 
@@ -160,7 +183,16 @@ export class X01GameEngine extends BaseGameEngine {
    * @param {number} value 
    */
   applyThrow(player, value) {
-    player.score -= value;
+    // Create new player state instead of modifying directly
+    const playerIndex = this.turnManager.currentPlayerIndex;
+    const updatedPlayers = [...this.turnManager.players];
+    updatedPlayers[playerIndex] = {
+      ...player,
+      score: player.score - value
+    };
+    
+    // Update turn manager with new player state
+    this.turnManager.updatePlayers(updatedPlayers);
     this.turnManager.addToTurnScore(value);
   }
 
