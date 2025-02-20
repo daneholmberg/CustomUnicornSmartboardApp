@@ -151,8 +151,7 @@
       "handleThrow",
       "undoLastThrow",
       "getGameState"
-    ],
-    "testing": "80% coverage"
+    ]
   },
   "theme": {
     "required": [
@@ -161,6 +160,9 @@
       "borderRadius",
       "elevation"
     ]
+  },
+  "testing": {
+    "things to remember": "Always evaluate carefully if a test is failing because of a bug or because the test is improperly written. DO NOT ALWAYS JUST CHANGE THE TEST WITH THE ASSUMPTION THE BUG IS IN THE TEST AND NOT THE CODE."
   },
   "documentation": "Document classes, methods, configs, and state choices"
 }
