@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import useSmartboard, { CONNECTION_STATE } from '../useSmartboard';
 
 const SmartboardContext = createContext();
@@ -17,11 +17,25 @@ export function SmartboardProvider({ children }) {
   } = useSmartboard();
   const [lastThrow, setLastThrow] = useState(null);
 
+  // Debounce throw updates to prevent rapid-fire updates
+  const updateLastThrow = useCallback((newThrow) => {
+    if (!newThrow) return;
+    
+    // Validate throw data
+    if (typeof newThrow.score !== 'number' || typeof newThrow.multiplier !== 'number') {
+      console.error('Invalid throw data:', newThrow);
+      return;
+    }
+
+    setLastThrow(newThrow);
+  }, []);
+
   useEffect(() => {
     if (throws.length > 0) {
-      setLastThrow(throws[throws.length - 1]);
+      const latestThrow = throws[throws.length - 1];
+      updateLastThrow(latestThrow);
     }
-  }, [throws]);
+  }, [throws, updateLastThrow]);
 
   return (
     <SmartboardContext.Provider value={{
@@ -41,5 +55,9 @@ export function SmartboardProvider({ children }) {
 }
 
 export function useSmartboardContext() {
-  return useContext(SmartboardContext);
+  const context = useContext(SmartboardContext);
+  if (!context) {
+    throw new Error('useSmartboardContext must be used within SmartboardProvider');
+  }
+  return context;
 } 
