@@ -152,7 +152,7 @@ export default function useSmartboard() {
   const boardRotationRef = useRef(boardRotation);
 
   useEffect(() => {
-    console.log('[useSmartboard] boardRotation changed to:', boardRotation);
+    
   }, [boardRotation]);
 
   // Reset attempts when device changes
@@ -166,7 +166,7 @@ export default function useSmartboard() {
   useEffect(() => {
     return () => {
       if (monitorSubscription) {
-        console.log('Cleaning up characteristic monitoring...');
+        
         monitorSubscription.remove();
       }
     };
@@ -175,13 +175,13 @@ export default function useSmartboard() {
   // Update the ref when boardRotation changes
   useEffect(() => {
     boardRotationRef.current = boardRotation;
-    console.log('[useSmartboard] Updated boardRotationRef to:', boardRotationRef.current);
+    
   }, [boardRotation]);
 
   // Setup monitoring for a device
   const setupMonitoring = useCallback(async (discoveredDevice) => {
     attemptsRef.current += 1;
-    console.log(`[setupMonitoring] Attempt ${attemptsRef.current}/${MAX_RECONNECT_ATTEMPTS} for device ${discoveredDevice?.id}`);
+    
 
     if (attemptsRef.current > MAX_RECONNECT_ATTEMPTS) {
       console.log(`Max reconnection attempts (${MAX_RECONNECT_ATTEMPTS}) reached. Stopping reconnection in setupMonitoring.`);
@@ -193,7 +193,7 @@ export default function useSmartboard() {
     try {
       // Clear any existing subscription
       if (monitorSubscription) {
-        console.log('[setupMonitoring] Removing existing monitor subscription before setting up new one');
+        
         monitorSubscription.remove();
         setMonitorSubscription(null);
       }
@@ -293,7 +293,6 @@ export default function useSmartboard() {
     if (connectionState === CONNECTION_STATE.CONNECTED && useMock) {
       const rawScore = Math.floor(Math.random() * 20) + 1;
       const multiplier = Math.floor(Math.random() * 3) + 1;
-      console.log('[useSmartboard] mockThrow current boardRotation:', boardRotationRef.current);
       const dartData = translateDartDataUsingRef(rawScore, multiplier);
       setThrows(prev => [...prev, dartData]);
     }
@@ -301,7 +300,6 @@ export default function useSmartboard() {
 
   // Connect to the smartboard (mock or real)
   const connect = useCallback(async (useRealBoard = false) => {
-    console.log(`Attempting to connect (useRealBoard: ${useRealBoard})`);
     try {
       setError(null);
       setConnectionState(CONNECTION_STATE.CONNECTING);
@@ -343,14 +341,11 @@ export default function useSmartboard() {
       let isScanning = true;  // Track scanning state
       
       // Start scanning with timeout
-      console.log('Setting up scan timeout of 20 seconds...');
       const scanTimeout = setTimeout(() => {
-        console.log('Scan timeout reached - stopping device scan');
         if (isScanning) {
           isScanning = false;
           try {
             bleManager.stopDeviceScan();
-            console.log('Device scan stopped due to timeout');
           } catch (e) {
             console.error('Error stopping scan on timeout:', e);
           }
@@ -365,7 +360,6 @@ export default function useSmartboard() {
           isScanning = false;
           try {
             bleManager.stopDeviceScan();
-            console.log('Device scan stopped in cleanup');
           } catch (e) {
             console.error('Error stopping scan in cleanup:', e);
           }
@@ -374,7 +368,6 @@ export default function useSmartboard() {
       };
 
       try {
-        console.log('Starting device scan with no filters...');
         bleManager.startDeviceScan(null, null, async (error, scannedDevice) => {
           if (error) {
             console.error('Scan error:', error);

@@ -28,7 +28,6 @@ export const SettingsProvider = ({ children }) => {
   }, []);
 
   const getOffsetForNumber = (targetNumber) => {
-    console.log('SettingsContext - Getting offset for dart number:', targetNumber, 'type:', typeof targetNumber);
     // Convert string to number if needed
     const number = parseInt(targetNumber, 10);
     const index = NUMBERS.indexOf(number);
@@ -37,14 +36,6 @@ export const SettingsProvider = ({ children }) => {
     // Add NUMBERS.length to handle negative values
     const offset = (index - STANDARD_POSITION.INDEX + NUMBERS.length) % NUMBERS.length;
     
-    console.log('SettingsContext - Translation:', {
-      inputNumber: number,
-      foundAtIndex: index,
-      referenceIndex: STANDARD_POSITION.INDEX,
-      referenceNumber: STANDARD_POSITION.NUMBER,
-      calculatedOffset: offset,
-      explanation: `Number ${number} found at index ${index}, relative to reference point ${STANDARD_POSITION.INDEX} (number ${STANDARD_POSITION.NUMBER}) gives offset ${offset}`
-    });
     
     return index >= 0 ? offset : 0;
   };
@@ -52,12 +43,10 @@ export const SettingsProvider = ({ children }) => {
   const loadSettings = async () => {
     try {
       const storedNumber = await AsyncStorage.getItem(STORAGE_KEYS.BOARD_ROTATION);
-      console.log('SettingsContext - Loaded stored dart number:', storedNumber);
       if (storedNumber !== null) {
         const dartNumber = parseInt(storedNumber, 10);
         setSelectedNumber(dartNumber);
         const offset = getOffsetForNumber(dartNumber);
-        console.log('SettingsContext - Dart number:', dartNumber, 'Offset:', offset);
         setBoardRotation(offset);
       }
     } catch (error) {
@@ -69,15 +58,12 @@ export const SettingsProvider = ({ children }) => {
 
   const updateBoardRotation = async (dartNumber) => {
     try {
-      console.log('SettingsContext - Updating rotation for dart number:', dartNumber, 'type:', typeof dartNumber);
       const number = parseInt(dartNumber, 10);
       const offset = getOffsetForNumber(number);
-      console.log('SettingsContext - Calculated offset:', offset);
       
       await AsyncStorage.setItem(STORAGE_KEYS.BOARD_ROTATION, number.toString());
       setSelectedNumber(number);
       setBoardRotation(offset);
-      console.log('SettingsContext - Board rotation set to:', offset, 'Selected number:', number);
     } catch (error) {
       console.error('Error saving board rotation:', error);
     }

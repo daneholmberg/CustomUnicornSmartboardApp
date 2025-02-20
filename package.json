@@ -48,7 +48,9 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-expo": "~52.0.4",
     "react-test-renderer": "18.2.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@testing-library/react-hooks": "^8.0.1",
+    "@testing-library/react": "^13.0.0"
   },
   "private": true
 }

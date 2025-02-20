@@ -8,10 +8,11 @@ import { HalveItGameEngine } from './HalveItGameEngine';
  * Creates appropriate game engine instance based on game mode
  * @param {GameConfig} config - Game configuration object
  * @returns {BaseGameEngine} Initialized game engine instance
+ * @throws {GameError} When game mode is not specified or unsupported
  */
 export function createGameEngine(config) {
   if (!config?.mode) {
-    throw new GameConfigError('Game mode must be specified');
+    throw new GameError('Game mode must be specified');
   }
 
   switch (config.mode) {
@@ -22,6 +23,6 @@ export function createGameEngine(config) {
     case GAME_MODES.HALVE_IT:
       return new HalveItGameEngine(config);
     default:
-      throw new GameConfigError(`Unsupported game mode: ${config.mode}`);
+      throw new GameError(`Unsupported game mode: ${config.mode}`);
   }
 }
