@@ -51,8 +51,11 @@ const translateDartData = (rawScore, multiplier, boardRotation) => {
 
   // Handle player change signal
   if (multiplier === 170 && rawScore === 85) {
-    console.log('[translateDartData] Detected player change signal');
-    return { type: 'playerChange' };
+    console.log('[translateDartData] Detected player change signal/miss');
+    return {
+      score: 0,
+      multiplier: 0
+    };
   }
 
   // Handle bullseye hits (no translation needed)
@@ -261,8 +264,10 @@ export default function useSmartboard() {
               console.warn('[Smartboard] Parsed values - rawValue:', rawValue, 'multiplier:', multiplier);
 
               if (multiplier === 170 && rawValue === 85) {
-                console.warn('[Smartboard] Detected player change callback trigger');
-                // Handle player change
+                console.warn('[Smartboard] Detected miss signal (170/85)');
+                // Process as a valid miss
+                const dartData = { score: 0, multiplier: 0 };
+                setThrows(prev => [...prev, dartData]);
                 return;
               }
 
@@ -587,7 +592,7 @@ export default function useSmartboard() {
     
     // Handle special cases first
     if (multiplier === 170 && rawScore === 85) {
-      return { type: 'playerChange' };
+      return { score: 0, multiplier: 0 };
     }
 
     // Fix bullseye handling - preserve the multiplier!
