@@ -240,26 +240,92 @@ export default function useSmartboard() {
           if (characteristic?.value) {
             try {
               const base64 = characteristic.value;
+              console.warn('[Smartboard] Received dart notification, base64 value:', base64);
+              
               const binaryString = atob(base64);
               const bytes = new Uint8Array(binaryString.length);
               for (let i = 0; i < binaryString.length; i++) {
                 bytes[i] = binaryString.charCodeAt(i);
               }
               
+              console.warn('[Smartboard] Parsed data buffer (hex):', 
+                Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join(''));
+              
+              if (bytes.length < 2) {
+                console.warn('[Smartboard] Data length too short:', bytes.length);
+                return;
+              }
+
               const rawValue = bytes[0];
-              const multiplier = bytes[1];
+              let multiplier = bytes[1];
+              console.warn('[Smartboard] Parsed values - rawValue:', rawValue, 'multiplier:', multiplier);
+
+              if (multiplier === 170 && rawValue === 85) {
+                console.warn('[Smartboard] Detected player change callback trigger');
+                // Handle player change
+                return;
+              }
+
+              // Add validation logging
+              console.warn('[Smartboard] Starting validation checks...');
+
+              // Special handling for bullseye
+              const isBullseye = rawValue === 25;
+              // Regular score validation for non-bullseye
+              const isValidRegularScore = rawValue >= 1 && rawValue <= 20;
+              // For bullseye, only multiplier 1 (outer) or 2 (inner) is valid
+              const isValidBullseyeMultiplier = isBullseye ? (multiplier === 1 || multiplier === 2) : true;
+              // For regular scores, multiplier can be 1, 2, or 3
+              const isValidRegularMultiplier = !isBullseye ? [1, 2, 3].includes(multiplier) : true;
+
+              const isValidScore = isBullseye || isValidRegularScore;
+              const isValidMultiplier = isValidBullseyeMultiplier && isValidRegularMultiplier;
+
+              console.warn('[Smartboard] Validation results:', {
+                rawValue,
+                multiplier,
+                isBullseye,
+                isValidScore,
+                isValidMultiplier,
+                isValidBullseyeMultiplier,
+                isValidRegularMultiplier
+              });
+
+              // Only validate score, convert invalid multipliers to 1
+              if (!isValidScore) {
+                console.warn('[Smartboard] Invalid score - returning without processing dart');
+                return;
+              }
+              
+              // Convert invalid multiplier to 1, but preserve bullseye multiplier
+              if (!isValidMultiplier) {
+                console.warn('[Smartboard] Invalid multiplier detected, converting to 1');
+                multiplier = 1;
+              } else if (isBullseye) {
+                // Keep the original multiplier for valid bullseye hits
+                console.warn('[Smartboard] Valid bullseye hit with multiplier:', multiplier);
+              }
+              console.warn('[Smartboard] Validation passed - processing dart...');
+
+              // Debounce: if a valid dart was processed within 0.3s, ignore this notification
+              const now = Date.now();
+              if (this.lastValidDartTimestamp && now - this.lastValidDartTimestamp < 300) {
+                console.warn('[Smartboard] Debouncing dart notification');
+                return;
+              }
+              this.lastValidDartTimestamp = now;
               
               const dartData = translateDartDataUsingRef(rawValue, multiplier);
               
               if (dartData.type === 'playerChange') {
-                console.log('Player change signal received');
+                console.warn('[Smartboard] Player change signal received');
                 return;
               }
 
-              console.log('Received dart throw:', dartData);
+              console.warn('[Smartboard] Final dart data:', dartData);
               setThrows(prev => [...prev, dartData]);
             } catch (parseError) {
-              console.error('Error parsing dart data:', parseError);
+              console.error('[Smartboard] Error parsing dart data:', parseError);
             }
           }
         }
@@ -524,24 +590,21 @@ export default function useSmartboard() {
       return { type: 'playerChange' };
     }
 
-    if (rawScore === 25 || rawScore === 50) {
+    // Fix bullseye handling - preserve the multiplier!
+    if (rawScore === 25) {
       return {
         score: rawScore,
-        multiplier: rawScore === 50 ? 2 : 1
+        multiplier // Keep the original multiplier instead of forcing it to 1 or 2
       };
     }
 
-    // Find the index of the raw score in the NUMBERS array
+    // Rest of the translation logic for regular scores...
     const rawIndex = NUMBERS.indexOf(rawScore);
     if (rawIndex === -1) {
       console.error('[translateDartDataUsingRef] Invalid raw score:', rawScore);
       return { score: rawScore, multiplier };
     }
 
-    // When the board is physically rotated, the numbers are shifted.
-    // If we rotate so 6 is at the top (offset 5), then:
-    // - A hit on what looks like position 0 is actually position 5
-    // - So we need to add the rotation to find the actual position hit
     const adjustedIndex = (rawIndex + currentRotation) % NUMBERS.length;
     const translatedScore = NUMBERS[adjustedIndex];
 
