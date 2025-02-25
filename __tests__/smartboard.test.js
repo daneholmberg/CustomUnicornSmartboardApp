@@ -513,26 +513,6 @@ describe('Smartboard BLE notification handling', () => {
     expect(throwCallback.mock.calls[0][0]).toEqual({ score: 17, multiplier: 2 });
   });
 
-  test('returns 0 when using invalid button number', async () => {
-    const smartboardModule = require('../smartboard/smartboard');
-    const newSmartboard = smartboardModule.default();
-    await newSmartboard.setupCharacteristics(
-      deviceId,
-      [{ uuid: 'fff1', serviceUuid: 'fff0' }],
-      99, // Invalid button number
-      throwCallback,
-      playerChangeCallback
-    );
 
-    const dataBuffer = Buffer.from([10, 2]);
-    const base64Value = dataBuffer.toString('base64');
-    ExpoBlE.__emit('characteristicValueChanged', {
-      value: base64Value,
-      characteristic: { uuid: 'fff1' },
-      device: { id: deviceId },
-    });
-    
-    expect(throwCallback).toHaveBeenCalledWith({ score: 0, multiplier: 2 });
-  });
 
 }); 

@@ -112,23 +112,53 @@ export class TurnManager {
    */
   undoThrow() {
     if (this.throwsThisTurn > 0) {
+      // If we're undoing a throw within the same player's turn,
       this.throwsThisTurn--;
-      this.currentTurnDarts.pop();
+      
+      // Safely remove the last dart
+      if (this.currentTurnDarts.length > 0) {
+        this.currentTurnDarts.pop();
+      }
     } else if (this.throwsThisTurn === 0) {
-      const prevIndex = (this.currentPlayerIndex - 1 + this.players.length) % this.players.length;
-      this.currentPlayerIndex = prevIndex;
-      this.throwsThisTurn = GAME_CONSTANTS.MAX_DARTS_PER_TURN - 1;
-      this.currentTurnDarts = [...this.lastTurnDarts];
+      // If we're at the beginning of a player's turn (throwsThisTurn = 0)
+      // we should go back to the previous player's turn
+      
+      // Get the previous player index (wrap around to the end if at the start)
+      const prevPlayerIndex = (this.currentPlayerIndex === 0) 
+        ? this.players.length - 1 
+        : this.currentPlayerIndex - 1;
+        
+      // Switch to the previous player
+      this.currentPlayerIndex = prevPlayerIndex;
+      
+      // Reset to the end of that player's turn
+      this.throwsThisTurn = GAME_CONSTANTS.MAX_DARTS_PER_TURN;
+      
+      // Clear all dart arrays - the BaseGameEngine should restore them
+      this.currentTurnDarts = [];
       this.lastTurnDarts = [];
       this.lastTurnTimestamp = null;
     }
   }
 
   addDart(dart) {
+    // Ensure we have a valid dart object
+    if (!dart || typeof dart !== 'object') {
+      return;
+    }
+    
+    // Add the dart to the current turn array
     this.currentTurnDarts.push(dart);
+    
+    // Reset lastTurnDarts when starting a new turn
     if (this.currentTurnDarts.length === 1 && this.throwsThisTurn === 0) {
       this.lastTurnDarts = [];
       this.lastTurnTimestamp = null;
+    }
+    
+    // Safety check: limit the number of darts (prevents memory leaks)
+    if (this.currentTurnDarts.length > GAME_CONSTANTS.MAX_DARTS_PER_TURN) {
+      this.currentTurnDarts = this.currentTurnDarts.slice(-GAME_CONSTANTS.MAX_DARTS_PER_TURN);
     }
   }
 } 

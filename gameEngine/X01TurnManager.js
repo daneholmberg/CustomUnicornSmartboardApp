@@ -74,9 +74,26 @@ export class X01TurnManager extends TurnManager {
    */
   undoThrow() {
     const didHaveZeroThrows = (this.throwsThisTurn === 0);
+    const previousPlayerIndex = this.currentPlayerIndex;
+    
+    // Call the parent undoThrow which might change the current player
     super.undoThrow();
+    
     if (didHaveZeroThrows) {
-      this.currentTurnScore = 0;
+      // We've reverted to the previous player
+      if (previousPlayerIndex !== this.currentPlayerIndex) {
+        // Restore previous turn score
+        this.currentTurnScore = this.previousTurnScore;
+        
+        // Reset the startOfTurnScore to whatever the current player's score is now
+        const currentPlayer = this.getCurrentPlayer();
+        if (currentPlayer) {
+          this.startOfTurnScore = this.validatePlayerScore(currentPlayer.score);
+        }
+      } else {
+        // If we stayed on the same player, just reset the turn score
+        this.currentTurnScore = 0;
+      }
     }
   }
 } 

@@ -92,6 +92,9 @@ export class X01GameEngine extends BaseGameEngine {
       this.hitHistory.push(this.lastHit);
     }
     this.lastHit = dart;
+    
+    // Add dart to current turn darts in the turn manager
+    this.turnManager.addDart(dart);
 
     // Check if this throw would be valid
     if (!this.isValidScore(currentPlayer.score - throwValue)) {
@@ -291,21 +294,25 @@ export class X01GameEngine extends BaseGameEngine {
     if (!lastThrow) return false;
 
     const player = this.turnManager.getState().players[lastThrow.playerIndex];
-    const { turnScore, playerScore, stats, wasLastThrowOfTurn } = lastThrow.meta || {};
+    const meta = lastThrow.meta || {};
+    const { turnScore, playerScore, stats, wasLastThrowOfTurn } = meta;
 
+    // Safely restore player score
     if (typeof playerScore === 'number') {
       player.score = playerScore;
     }
 
+    // Safely restore turn score
     if (typeof turnScore === 'number') {
       this.turnManager.currentTurnScore = turnScore;
     }
 
+    // Safely restore player stats
     if (wasLastThrowOfTurn && stats) {
       player.stats = { ...stats };
     }
 
-    this.gameMessage = `Round score: ${this.turnManager.currentTurnScore}`;
+    this.gameMessage = `Round score: ${this.turnManager.currentTurnScore || 0}`;
     return true;
   }
 }

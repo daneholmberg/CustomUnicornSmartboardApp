@@ -64,18 +64,26 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
     if (!lastThrow) return false;
 
     const player = this.turnManager.getState().players[lastThrow.playerIndex];
-    // Pull out the old targetIndex from meta
-    const { targetIndex } = lastThrow.meta || {};
+    
+    // Handle case where meta might be undefined
+    const meta = lastThrow.meta || {};
+    const targetIndex = meta.targetIndex !== undefined ? meta.targetIndex : player.targetIndex;
 
-    player.stats.attempts--;
+    // Safely decrement attempts
+    if (player.stats.attempts > 0) {
+      player.stats.attempts--;
+    }
 
     // If it was a hit on that target, revert
     const targetAtTimeOfThrow = AROUND_THE_WORLD_TARGETS[targetIndex];
     if (lastThrow.dart.score === targetAtTimeOfThrow) {
-      player.stats.hits--;
+      if (player.stats.hits > 0) {
+        player.stats.hits--;
+      }
       player.targetIndex = targetIndex;
     }
 
+    // Safely calculate hit rate
     player.stats.hitRate = player.stats.attempts > 0
       ? Math.round((player.stats.hits / player.stats.attempts) * 100)
       : 0;
@@ -101,6 +109,23 @@ export class AroundTheWorldGameEngine extends BaseGameEngine {
     const isFirstDartOfTurn = this.turnManager.throwsThisTurn === 0;
     const dartsAtCurrentTarget = currentPlayer.stats.dartsThrown - 
       (currentPlayer.stats.numbersCompleted * currentPlayer.stats.averageDartsPerNumber);
+    
+    // Save throw history for undo
+    this.throwHistory.push({
+      dart,
+      playerIndex: this.turnManager.currentPlayerIndex,
+      throwsThisTurn: this.turnManager.throwsThisTurn,
+      meta: { targetIndex: currentPlayer.targetIndex }
+    });
+    
+    // Update hit history
+    if (this.lastHit) {
+      this.hitHistory.push(this.lastHit);
+    }
+    this.lastHit = dart;
+    
+    // Add dart to current turn darts in the turn manager
+    this.turnManager.addDart(dart);
     
     // Update base stats
     currentPlayer.stats.dartsThrown++;
